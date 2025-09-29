@@ -789,7 +789,7 @@ function showWhatsAppInstructions(fileName, whatsappURL, isMobile, pdfDoc) {
                     </div>
                     <div class="mobile-buttons">
                         <button onclick="downloadPDFAgain('${fileName}')" class="btn-download">
-                            📥 Baixar PDF Novamente
+                            � Salvar PDF Onde Quiser
                         </button>
                         <button onclick="openWhatsAppNow('${whatsappURL}')" class="btn-whatsapp">
                             📱 Abrir WhatsApp
@@ -953,22 +953,130 @@ function showSuccessMessage() {
     }, 8000);
 }
 
-// Função para baixar PDF novamente (mobile)
-function downloadPDFAgain(fileName) {
-    if (window.currentPDF && window.currentFileName) {
-        window.currentPDF.save(window.currentFileName);
-        
-        // Mostrar feedback visual
-        const button = event.target;
-        const originalText = button.innerHTML;
-        button.innerHTML = '✅ PDF Baixado!';
-        button.style.background = '#28a745';
-        
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.style.background = '';
-        }, 3000);
+// Função para baixar PDF com opção de escolher local (mobile)
+async function downloadPDFAgain(fileName) {
+    if (!window.currentPDF || !window.currentFileName) {
+        alert('Erro: PDF não encontrado. Tente gerar novamente.');
+        return;
     }
+
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    try {
+        // Tentar usar File System Access API (navegadores modernos)
+        if ('showSaveFilePicker' in window) {
+            button.innerHTML = '📂 Escolhendo Local...';
+            button.style.background = '#007bff';
+            
+            const fileHandle = await window.showSaveFilePicker({
+                suggestedName: window.currentFileName,
+                types: [{
+                    description: 'Arquivo PDF',
+                    accept: { 'application/pdf': ['.pdf'] }
+                }]
+            });
+            
+            const writable = await fileHandle.createWritable();
+            const pdfBlob = new Blob([window.currentPDF.output('blob')], { type: 'application/pdf' });
+            await writable.write(pdfBlob);
+            await writable.close();
+            
+            // Sucesso
+            button.innerHTML = '✅ PDF Salvo!';
+            button.style.background = '#28a745';
+            
+            // Mostrar notificação de sucesso
+            showSaveSuccessNotification(fileHandle.name);
+            
+        } else {
+            // Fallback: download tradicional para navegadores antigos
+            button.innerHTML = '📥 Baixando PDF...';
+            button.style.background = '#28a745';
+            
+            window.currentPDF.save(window.currentFileName);
+            
+            button.innerHTML = '✅ PDF Baixado!';
+            showFallbackNotification();
+        }
+        
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            // Usuário cancelou
+            button.innerHTML = '❌ Cancelado';
+            button.style.background = '#dc3545';
+        } else {
+            // Erro real
+            console.error('Erro ao salvar PDF:', error);
+            button.innerHTML = '❌ Erro ao Salvar';
+            button.style.background = '#dc3545';
+            
+            // Fallback em caso de erro
+            setTimeout(() => {
+                window.currentPDF.save(window.currentFileName);
+                button.innerHTML = '✅ Baixado (Downloads)';
+                button.style.background = '#28a745';
+            }, 1000);
+        }
+    }
+    
+    // Restaurar botão após 4 segundos
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.style.background = '';
+    }, 4000);
+}
+
+// Função para mostrar notificação de sucesso ao salvar
+function showSaveSuccessNotification(fileName) {
+    const notification = document.createElement('div');
+    notification.className = 'save-notification success';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">✅</span>
+            <div class="notification-text">
+                <strong>PDF Salvo com Sucesso!</strong>
+                <br>Arquivo: <code>${fileName}</code>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animar entrada
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    // Remover após 5 segundos
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 300);
+    }, 5000);
+}
+
+// Função para notificação de fallback
+function showFallbackNotification() {
+    const notification = document.createElement('div');
+    notification.className = 'save-notification info';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">📥</span>
+            <div class="notification-text">
+                <strong>PDF Baixado!</strong>
+                <br>Verifique na pasta Downloads
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animar entrada
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    // Remover após 4 segundos
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 300);
+    }, 4000);
 }
 
 // Função para abrir WhatsApp Web
