@@ -706,18 +706,24 @@ function generatePDFAndSendWhatsApp(formData) {
         
         // Criar mensagem para WhatsApp
         const nomeCandidate = formData.nome_completo || 'Candidato';
-        const whatsappMessage = `🍝 *PASTIFÍCIO SELMI* - Novo Currículo
+        const dataAtual = new Date().toLocaleDateString('pt-BR');
+        const contatoCandidate = formData.whatsapp || 'Nao informado';
         
-👤 *Candidato:* ${nomeCandidate}
-📅 *Data:* ${new Date().toLocaleDateString('pt-BR')}
-📱 *Contato:* ${formData.whatsapp || 'Não informado'}
+        const whatsappMessage = `PASTIFICIO SELMI - Novo Curriculo
 
-📋 Currículo em PDF anexo.
+Nome: ${nomeCandidate}
+Data: ${dataAtual}
+Contato: ${contatoCandidate}
 
-_Enviado automaticamente pelo formulário online._`;
+Curriculo em PDF anexo.
+
+Enviado pelo formulario online.`;
         
         // Gerar nome do arquivo
         const fileName = `Curriculo_${nomeCandidate.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        // Detectar se é dispositivo móvel
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         // Fazer download do PDF primeiro
         doc.save(fileName);
@@ -725,12 +731,12 @@ _Enviado automaticamente pelo formulário online._`;
         // Aguardar um pouco para garantir que o download começou
         setTimeout(() => {
             // Criar link do WhatsApp
-            const phoneNumber = '554331761441'; // Número do WhatsApp
+            const phoneNumber = '554331761441'; // Número do WhatsApp (Brasil + Área + Número)
             const encodedMessage = encodeURIComponent(whatsappMessage);
             const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
             
             // Mostrar instruções ANTES de abrir o WhatsApp
-            showWhatsAppInstructions(fileName, whatsappURL);
+            showWhatsAppInstructions(fileName, whatsappURL, isMobile, doc);
         }, 2000);
         
     } catch (error) {
@@ -740,7 +746,7 @@ _Enviado automaticamente pelo formulário online._`;
 }
 
 // Função para mostrar instruções detalhadas do WhatsApp
-function showWhatsAppInstructions(fileName, whatsappURL) {
+function showWhatsAppInstructions(fileName, whatsappURL, isMobile, pdfDoc) {
     // Remover mensagem anterior se existir
     const existingMsg = document.querySelector('.whatsapp-instructions');
     if (existingMsg) {
@@ -750,7 +756,84 @@ function showWhatsAppInstructions(fileName, whatsappURL) {
     // Criar nova mensagem de instruções
     const instructionsMsg = document.createElement('div');
     instructionsMsg.className = 'whatsapp-instructions';
-    instructionsMsg.innerHTML = `
+    
+    // Conteúdo diferente para mobile e desktop
+    const mobileContent = `
+        <div class="instruction-header">
+            <span class="whatsapp-logo">📱</span>
+            <strong>PDF Pronto! Escolha uma Opção</strong>
+        </div>
+        
+        <div class="instruction-content">
+            <p><strong>✅ PDF gerado com sucesso:</strong> <code>${fileName}</code></p>
+            
+            <div class="mobile-options">
+                <div class="mobile-option">
+                    <div class="option-header">
+                        <span class="option-icon">📱</span>
+                        <strong>Opção 1: Enviar pelo Celular</strong>
+                    </div>
+                    <div class="option-steps">
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <span class="step-text">Baixe o PDF novamente no celular</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <span class="step-text">Abra o WhatsApp</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <span class="step-text">Anexe o PDF e envie</span>
+                        </div>
+                    </div>
+                    <div class="mobile-buttons">
+                        <button onclick="downloadPDFAgain('${fileName}')" class="btn-download">
+                            📥 Baixar PDF Novamente
+                        </button>
+                        <button onclick="openWhatsAppNow('${whatsappURL}')" class="btn-whatsapp">
+                            📱 Abrir WhatsApp
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mobile-option">
+                    <div class="option-header">
+                        <span class="option-icon">💻</span>
+                        <strong>Opção 2: Enviar pelo Computador</strong>
+                    </div>
+                    <div class="option-steps">
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <span class="step-text">Abra o WhatsApp Web no computador</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <span class="step-text">Anexe o PDF da pasta Downloads</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <span class="step-text">Envie para o Pastifício Selmi</span>
+                        </div>
+                    </div>
+                    <div class="mobile-buttons">
+                        <button onclick="openWhatsAppWeb('${whatsappURL}')" class="btn-web">
+                            🌐 Abrir WhatsApp Web
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="instruction-footer">
+                <p>💡 <strong>Dica:</strong> No celular é mais fácil anexar arquivos!</p>
+                <button onclick="closeInstructions()" class="btn-close">
+                    ❌ Fechar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    const desktopContent = `
         <div class="instruction-header">
             <span class="whatsapp-logo">📱</span>
             <strong>PDF Pronto! Leia as Instruções Antes de Enviar</strong>
@@ -801,6 +884,13 @@ function showWhatsAppInstructions(fileName, whatsappURL) {
             </div>
         </div>
     `;
+    
+    // Usar conteúdo apropriado baseado no dispositivo
+    instructionsMsg.innerHTML = isMobile ? mobileContent : desktopContent;
+    
+    // Armazenar o documento PDF para re-download
+    window.currentPDF = pdfDoc;
+    window.currentFileName = fileName;
     
     // Inserir no topo da página
     document.querySelector('.container').insertBefore(instructionsMsg, document.querySelector('header'));
@@ -863,9 +953,43 @@ function showSuccessMessage() {
     }, 8000);
 }
 
+// Função para baixar PDF novamente (mobile)
+function downloadPDFAgain(fileName) {
+    if (window.currentPDF && window.currentFileName) {
+        window.currentPDF.save(window.currentFileName);
+        
+        // Mostrar feedback visual
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '✅ PDF Baixado!';
+        button.style.background = '#28a745';
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.style.background = '';
+        }, 3000);
+    }
+}
 
-
-
+// Função para abrir WhatsApp Web
+function openWhatsAppWeb(whatsappURL) {
+    // Modificar URL para WhatsApp Web com formato correto
+    const phoneNumber = '554331761441';
+    const message = whatsappURL.split('text=')[1]; // Extrair mensagem da URL
+    const webURL = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
+    window.open(webURL, '_blank');
+    
+    // Mostrar feedback
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '✅ WhatsApp Web Aberto!';
+    button.style.background = '#25d366';
+    
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.style.background = '';
+    }, 3000);
+}
 
 // Salvar progresso a cada mudança
 document.addEventListener('DOMContentLoaded', function() {
