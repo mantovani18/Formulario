@@ -731,7 +731,7 @@ Enviado pelo formulario online.`;
         // Aguardar um pouco para garantir que o download começou
         setTimeout(() => {
             // Criar link do WhatsApp
-            const phoneNumber = '554331761441'; // Número do WhatsApp (Brasil + Área + Número)
+            const phoneNumber = '5519971238643'; // Número do WhatsApp (Brasil + Área + Número)
             const encodedMessage = encodeURIComponent(whatsappMessage);
             const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
             
@@ -743,6 +743,75 @@ Enviado pelo formulario online.`;
         console.error('Erro ao gerar PDF:', error);
         showErrorMessage();
     }
+}
+
+// Função para gerar conteúdo mobile reorganizado
+function generateMobileContent(fileName, whatsappURL) {
+    const candidateName = fileName.replace('Curriculo_', '').replace(/_.*/, '').replace(/_/g, ' ');
+    const currentDate = new Date().toLocaleDateString('pt-BR');
+    
+    return `
+        <div class="instruction-header">
+            <span class="whatsapp-logo">📱</span>
+            <strong>Currículo Pronto! Envie pelo WhatsApp</strong>
+        </div>
+        
+        <div class="instruction-content">
+            <p><strong>✅ PDF gerado com sucesso:</strong> <code>${fileName}</code></p>
+            
+            <!-- Mensagem principal do WhatsApp primeiro -->
+            <div class="whatsapp-main-section">
+                <div class="whatsapp-message-preview">
+                    <h3>📱 Mensagem que será enviada:</h3>
+                    <div class="message-box">
+                        <strong>PASTIFICIO SELMI - Novo Curriculo</strong><br><br>
+                        Nome: <em>${candidateName}</em><br>
+                        Data: <em>${currentDate}</em><br>
+                        Contato: <em>Seu WhatsApp</em><br><br>
+                        📎 Curriculo em PDF anexo.<br><br>
+                        <small>Enviado pelo formulario online.</small>
+                    </div>
+                </div>
+                
+                <div class="whatsapp-actions">
+                    <button onclick="openWhatsAppNow('${whatsappURL}')" class="btn-whatsapp-main">
+                        📱 Enviar pelo WhatsApp Agora
+                    </button>
+                    
+                    <div class="save-section">
+                        <p><strong>💾 Precisa salvar o currículo antes?</strong></p>
+                        <button onclick="downloadPDFAgain('${fileName}')" class="btn-save-curriculum">
+                            📂 Salvar Currículo no Celular
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Opção alternativa (WhatsApp Web) -->
+            <div class="alternative-option">
+                <details>
+                    <summary><strong>🌐 Alternativa: Usar WhatsApp Web no Computador</strong></summary>
+                    <div class="web-option-content">
+                        <p>Se preferir usar o WhatsApp Web:</p>
+                        <ol>
+                            <li>Clique no botão abaixo para abrir WhatsApp Web</li>
+                            <li>Anexe o PDF da pasta Downloads</li>
+                            <li>Envie para o Pastifício Selmi</li>
+                        </ol>
+                        <button onclick="openWhatsAppWeb('${whatsappURL}')" class="btn-web">
+                            🌐 Abrir WhatsApp Web
+                        </button>
+                    </div>
+                </details>
+            </div>
+            
+            <div class="instruction-footer">
+                <button onclick="closeInstructions()" class="btn-close">
+                    ❌ Fechar
+                </button>
+            </div>
+        </div>
+    `;
 }
 
 // Função para mostrar instruções detalhadas do WhatsApp
@@ -761,13 +830,14 @@ function showWhatsAppInstructions(fileName, whatsappURL, isMobile, pdfDoc) {
     const mobileContent = `
         <div class="instruction-header">
             <span class="whatsapp-logo">📱</span>
-            <strong>PDF Pronto! Escolha uma Opção</strong>
+            <strong>Currículo Pronto! Envie pelo WhatsApp</strong>
         </div>
         
         <div class="instruction-content">
             <p><strong>✅ PDF gerado com sucesso:</strong> <code>${fileName}</code></p>
             
-            <div class="mobile-options">
+            <!-- Mensagem principal do WhatsApp primeiro -->
+            <div class="whatsapp-main-section">
                 <div class="mobile-option">
                     <div class="option-header">
                         <span class="option-icon">📱</span>
@@ -825,7 +895,6 @@ function showWhatsAppInstructions(fileName, whatsappURL, isMobile, pdfDoc) {
             </div>
             
             <div class="instruction-footer">
-                <p>💡 <strong>Dica:</strong> No celular é mais fácil anexar arquivos!</p>
                 <button onclick="closeInstructions()" class="btn-close">
                     ❌ Fechar
                 </button>
@@ -886,7 +955,11 @@ function showWhatsAppInstructions(fileName, whatsappURL, isMobile, pdfDoc) {
     `;
     
     // Usar conteúdo apropriado baseado no dispositivo
-    instructionsMsg.innerHTML = isMobile ? mobileContent : desktopContent;
+    if (isMobile) {
+        instructionsMsg.innerHTML = generateMobileContent(fileName, whatsappURL);
+    } else {
+        instructionsMsg.innerHTML = desktopContent;
+    }
     
     // Armazenar o documento PDF para re-download
     window.currentPDF = pdfDoc;
@@ -1082,7 +1155,7 @@ function showFallbackNotification() {
 // Função para abrir WhatsApp Web
 function openWhatsAppWeb(whatsappURL) {
     // Modificar URL para WhatsApp Web com formato correto
-    const phoneNumber = '554331761441';
+    const phoneNumber = '5519971238643';
     const message = whatsappURL.split('text=')[1]; // Extrair mensagem da URL
     const webURL = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
     window.open(webURL, '_blank');
