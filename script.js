@@ -709,15 +709,14 @@ function generatePDFAndSendWhatsApp(formData) {
         const dataAtual = new Date().toLocaleDateString('pt-BR');
         const contatoCandidate = formData.whatsapp || 'Nao informado';
         
-        const whatsappMessage = `PASTIFICIO SELMI - Novo Curriculo
+        const whatsappMessage = `Ola! Me chamo ${nomeCandidate} e gostaria de me candidatar para uma vaga no Pastificio Selmi.
 
-Nome: ${nomeCandidate}
-Data: ${dataAtual}
-Contato: ${contatoCandidate}
+Segue meu curriculo em anexo com minhas qualificacoes e experiencias.
 
-Curriculo em PDF anexo.
+Fico a disposicao para uma entrevista.
 
-Enviado pelo formulario online.`;
+Atenciosamente,
+${nomeCandidate}`;
         
         // Gerar nome do arquivo
         const fileName = `Curriculo_${nomeCandidate.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
@@ -730,10 +729,21 @@ Enviado pelo formulario online.`;
         
         // Aguardar um pouco para garantir que o download começou
         setTimeout(() => {
-            // Criar link do WhatsApp
-            const phoneNumber = '5519971238643'; // Número do WhatsApp (Brasil + Área + Número)
+            // Criar link do WhatsApp - formato correto: código país + DDD + número
+            const phoneNumber = '5519971238643'; // Brasil(55) + Campinas(19) + Número(971238643)
             const encodedMessage = encodeURIComponent(whatsappMessage);
             const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+            
+            // Debug: validar URL gerada
+            console.log('Número do telefone:', phoneNumber);
+            console.log('Mensagem original:', whatsappMessage);
+            console.log('Mensagem codificada:', encodedMessage);
+            console.log('URL final:', whatsappURL);
+            
+            // Validar se URL não está muito longa (WhatsApp tem limite)
+            if (whatsappURL.length > 2000) {
+                console.warn('URL muito longa, pode causar problemas:', whatsappURL.length, 'caracteres');
+            }
             
             // Mostrar instruções ANTES de abrir o WhatsApp
             showWhatsAppInstructions(fileName, whatsappURL, isMobile, doc);
@@ -974,6 +984,15 @@ function showWhatsAppInstructions(fileName, whatsappURL, isMobile, pdfDoc) {
 
 // Função para abrir WhatsApp quando usuário clicar
 function openWhatsAppNow(whatsappURL) {
+    // Debug: mostrar URL no console
+    console.log('URL do WhatsApp:', whatsappURL);
+    
+    // Validar se URL está correta
+    if (!whatsappURL || !whatsappURL.startsWith('https://wa.me/')) {
+        alert('Erro: URL do WhatsApp inválida. Tente novamente.');
+        return;
+    }
+    
     window.open(whatsappURL, '_blank');
     
     // Atualizar instruções para mostrar que WhatsApp foi aberto
@@ -1158,6 +1177,11 @@ function openWhatsAppWeb(whatsappURL) {
     const phoneNumber = '5519971238643';
     const message = whatsappURL.split('text=')[1]; // Extrair mensagem da URL
     const webURL = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
+    
+    // Debug para WhatsApp Web
+    console.log('WhatsApp Web - Número:', phoneNumber);
+    console.log('WhatsApp Web - URL:', webURL);
+    
     window.open(webURL, '_blank');
     
     // Mostrar feedback
@@ -1180,3 +1204,42 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('input', saveProgress);
     form.addEventListener('change', saveProgress);
 });
+
+// Funções de teste para WhatsApp
+function testWhatsAppLink() {
+    const phoneNumber = '5519971238643';
+    const testMessage = 'Teste de link do WhatsApp - Pastificio Selmi';
+    const encodedMessage = encodeURIComponent(testMessage);
+    const testURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+    
+    const resultDiv = document.getElementById('testResult');
+    resultDiv.innerHTML = `
+        <div style="background: #e7f3ff; padding: 10px; border-radius: 4px; margin: 10px 0;">
+            <strong>📱 Teste WhatsApp App:</strong><br>
+            <strong>Número:</strong> ${phoneNumber}<br>
+            <strong>URL:</strong> <code>${testURL}</code><br>
+            <a href="${testURL}" target="_blank" style="color: #25d366; text-decoration: underline;">👆 Clique aqui para testar</a>
+        </div>
+    `;
+    
+    console.log('Teste WhatsApp - URL:', testURL);
+}
+
+function testWhatsAppWeb() {
+    const phoneNumber = '5519971238643';
+    const testMessage = 'Teste de WhatsApp Web - Pastificio Selmi';
+    const encodedMessage = encodeURIComponent(testMessage);
+    const testURL = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+    
+    const resultDiv = document.getElementById('testResult');
+    resultDiv.innerHTML = `
+        <div style="background: #fff3cd; padding: 10px; border-radius: 4px; margin: 10px 0;">
+            <strong>🌐 Teste WhatsApp Web:</strong><br>
+            <strong>Número:</strong> ${phoneNumber}<br>
+            <strong>URL:</strong> <code>${testURL}</code><br>
+            <a href="${testURL}" target="_blank" style="color: #007bff; text-decoration: underline;">👆 Clique aqui para testar</a>
+        </div>
+    `;
+    
+    console.log('Teste WhatsApp Web - URL:', testURL);
+}
