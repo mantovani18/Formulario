@@ -264,81 +264,25 @@ function createFormattedMessage(formData) {
             throw new Error('formData não fornecido');
         }
         
-        // Função para converter valores dos campos para texto legível
-        const formatEstadoCivil = (valor) => {
-            const estados = {
-                'solteiro': 'Solteiro(a)',
-                'casado': 'Casado(a)',
-                'uniao_estavel': 'União Estável',
-                'divorciado': 'Divorciado(a)',
-                'viuvo': 'Viúvo(a)'
-            };
-            return estados[valor] || valor || 'Não informado';
-        };
+        // Verificar campo obrigatório - usar o mesmo campo que o PC
+        const nome = formData.nome || formData.nome_completo || 'Candidato';
         
-        // Função para limpar e validar texto
-        const limparTexto = (texto) => {
-            if (!texto) return 'Não informado';
-            return String(texto).trim() || 'Não informado';
-        };
-        
-        // Verificar campo obrigatório
-        const nome = limparTexto(formData.nome);
-        if (nome === 'Não informado' || nome === '') {
+        // Validação simples
+        if (!nome || nome.trim() === '' || nome === 'Candidato') {
             throw new Error('Nome é obrigatório para criar a mensagem');
         }
         
         console.log('Nome validado:', nome);
         
-        const message = `🍝 *PASTIFÍCIO SELMI - CURRÍCULO*
+        // Usar o mesmo padrão do PC - mensagem simples e direta com emojis
+        const message = `👋 Olá! Me chamo ${nome} e gostaria de me candidatar para uma vaga no Pastifício Selmi.
 
-👋 Olá! Me chamo *${nome}* e gostaria de me candidatar para uma vaga no Pastifício Selmi.
+📄 Segue meu currículo em anexo com minhas qualificações e experiências.
 
-📋 *DADOS PESSOAIS*
-• Nome: ${formData.nome}
-• Data de Nascimento: ${formData.data_nascimento || 'Não informado'}
-• CPF: ${formData.cpf || 'Não informado'}
-• RG: ${formData.rg || 'Não informado'}
-• Estado Civil: ${formatEstadoCivil(formData.estado_civil)}
+🤝 Fico à disposição para uma entrevista.
 
-📍 *ENDEREÇO*
-• CEP: ${formData.cep || 'Não informado'}
-• Rua: ${formData.rua || 'Não informado'}
-• Número: ${formData.numero || 'Não informado'}
-• Complemento: ${formData.complemento || 'Não informado'}
-• Bairro: ${formData.bairro || 'Não informado'}
-• Cidade: ${formData.cidade || 'Não informado'}
-• Estado: ${formData.estado || 'Não informado'}
-
-📞 *CONTATO*
-• Telefone: ${formData.telefone || 'Não informado'}
-• WhatsApp: ${formData.whatsapp || 'Não informado'}
-• E-mail: ${formData.email || 'Não informado'}
-
-💼 *VAGA*
-${formData.vaga_especifica === 'sim' ? `• Vaga específica: ${formData.qual_vaga}` : '• Interesse geral em trabalhar na empresa'}
-
-🎓 *ESCOLARIDADE*
-• Nível: ${formData.escolaridade || 'Não informado'}
-${formData.curso ? `• Curso: ${formData.curso}` : ''}
-${formData.instituicao ? `• Instituição: ${formData.instituicao}` : ''}
-${formData.ano_conclusao ? `• Ano de conclusão: ${formData.ano_conclusao}` : ''}
-
-💪 *EXPERIÊNCIA PROFISSIONAL*
-${formData.experiencia || 'Não informado'}
-
-🚗 *OUTRAS INFORMAÇÕES*
-${formData.veiculo_proprio === 'sim' ? '• ✅ Possui veículo próprio' : '• ❌ Não possui veículo próprio'}
-${formData.cnh === 'sim' ? '• ✅ Possui CNH' : '• ❌ Não possui CNH'}
-
-📝 *OBSERVAÇÕES ADICIONAIS*
-${formData.observacoes || 'Nenhuma observação adicional'}
-
----
-📅 *Enviado em:* ${new Date().toLocaleString('pt-BR')}
-🤖 *Via:* Sistema de Currículo Online
-
-Aguardo um retorno! Obrigado(a)! 😊`;
+✉️ Atenciosamente,
+${nome}`;
 
         console.log('Mensagem formatada criada com sucesso');
         return message;
