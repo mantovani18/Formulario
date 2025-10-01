@@ -32,6 +32,36 @@ function toggleParenteField() {
     }
 }
 
+// Função para mostrar/ocultar campo da CNH
+function toggleCnhField() {
+    const possuiCnh = document.querySelector('input[name="possui_cnh"]:checked');
+    const cnhField = document.getElementById('cnhField');
+    
+    if (possuiCnh && possuiCnh.value === 'sim') {
+        cnhField.style.display = 'block';
+        document.querySelector('select[name="categoria_cnh"]').required = true;
+    } else {
+        cnhField.style.display = 'none';
+        document.querySelector('select[name="categoria_cnh"]').required = false;
+        document.querySelector('select[name="categoria_cnh"]').value = '';
+    }
+}
+
+// Função para mostrar/ocultar campo do veículo
+function toggleVeiculoField() {
+    const veiculoProprio = document.querySelector('input[name="veiculo_proprio"]:checked');
+    const veiculoField = document.getElementById('veiculoField');
+    
+    if (veiculoProprio && veiculoProprio.value === 'sim') {
+        veiculoField.style.display = 'block';
+        document.querySelector('select[name="tipo_veiculo"]').required = true;
+    } else {
+        veiculoField.style.display = 'none';
+        document.querySelector('select[name="tipo_veiculo"]').required = false;
+        document.querySelector('select[name="tipo_veiculo"]').value = '';
+    }
+}
+
 // Máscaras para campos
 function formatCPF(cpf) {
     cpf = cpf.replace(/\D/g, '');
@@ -176,10 +206,14 @@ function clearForm() {
         // Ocultar campos condicionais
         document.getElementById('vagaField').style.display = 'none';
         document.getElementById('parenteField').style.display = 'none';
+        document.getElementById('cnhField').style.display = 'none';
+        document.getElementById('veiculoField').style.display = 'none';
         
         // Remover required dos campos condicionais
         document.getElementById('qual_vaga').required = false;
         document.getElementById('nome_parente').required = false;
+        document.querySelector('select[name="categoria_cnh"]').required = false;
+        document.querySelector('select[name="tipo_veiculo"]').required = false;
         
         // Remover experiências e cursos adicionais (manter apenas os 3 primeiros)
         removeExtraItems('experience');
@@ -190,22 +224,40 @@ function clearForm() {
 // Função para coletar dados do formulário
 function collectFormData() {
     const form = document.getElementById('curriculumForm');
-    const formData = new FormData(form);
     const data = {};
     
-    // Dados básicos
-    for (let [key, value] of formData.entries()) {
-        if (key.endsWith('[]')) {
-            // Para checkboxes múltiplos (disponibilidade)
-            const cleanKey = key.replace('[]', '');
-            if (!data[cleanKey]) {
-                data[cleanKey] = [];
-            }
-            data[cleanKey].push(value);
-        } else {
-            data[key] = value;
-        }
+    // Coletar campo nome_completo diretamente
+    const nomeField = document.getElementById('nome_completo');
+    if (nomeField) {
+        data.nome_completo = nomeField.value.trim();
     }
+    
+    // Coletar outros campos importantes diretamente
+    const fieldsToCollect = [
+        'endereco', 'cpf', 'rg', 'cidade_rg', 'data_nascimento', 'pis', 
+        'cidade_nascimento', 'estado_civil', 'nome_pai', 'nome_mae', 
+        'whatsapp', 'escolaridade', 'vaga_especifica', 'qual_vaga',
+        'parente_empresa', 'nome_parente', 'possui_cnh', 'categoria_cnh',
+        'veiculo_proprio', 'tipo_veiculo'
+    ];
+    
+    fieldsToCollect.forEach(fieldName => {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            if (field.type === 'radio') {
+                const checkedRadio = document.querySelector(`[name="${fieldName}"]:checked`);
+                if (checkedRadio) {
+                    data[fieldName] = checkedRadio.value;
+                }
+            } else {
+                data[fieldName] = field.value;
+            }
+        }
+    });
+    
+    // Coletar disponibilidade (checkboxes)
+    const disponibilidadeChecked = document.querySelectorAll('input[name="disponibilidade[]"]:checked');
+    data.disponibilidade = Array.from(disponibilidadeChecked).map(cb => cb.value);
     
     // Organizar experiências em array
     const experiences = [];
@@ -265,19 +317,49 @@ function createFormattedMessage(formData) {
         }
         
         // Verificar campo obrigatório - usar nome_completo que é o campo correto
-        const nome = formData.nome_completo || 'Candidato';
+        console.log('=== DEBUG createFormattedMessage ===');
+        console.log('formData recebido:', formData);
+        console.log('formData.nome_completo:', formData.nome_completo);
         
-        // Validação simples
-        if (!nome || nome.trim() === '' || nome === 'Candidato') {
+        // Pegar nome de forma mais robusta
+        let nome = formData.nome_completo;
+        
+        // Se não encontrou, tentar pegar diretamente do campo
+        if (!nome || nome.trim() === '') {
+            const nomeField = document.getElementById('nome_completo');
+            nome = nomeField ? nomeField.value.trim() : '';
+            console.log('Nome pego diretamente do campo:', nome);
+        }
+        
+        console.log('Nome final para usar:', nome);
+        
+        // Validação final
+        if (!nome || nome.trim() === '') {
+            console.error('ERRO na createFormattedMessage - nome inválido:', nome);
             throw new Error('Nome é obrigatório para criar a mensagem');
         }
         
         console.log('Nome validado:', nome);
         
+        // Criar informações adicionais sobre CNH e veículo
+        let infoAdicional = '';
+        
+        if (formData.possui_cnh === 'sim' && formData.categoria_cnh) {
+            infoAdicional += `\n🚗 CNH: ${formData.categoria_cnh}`;
+        } else if (formData.possui_cnh === 'nao') {
+            infoAdicional += `\n🚗 CNH: Não possuo`;
+        }
+        
+        if (formData.veiculo_proprio === 'sim' && formData.tipo_veiculo) {
+            infoAdicional += `\n🚙 Veículo próprio: ${formData.tipo_veiculo}`;
+        } else if (formData.veiculo_proprio === 'nao') {
+            infoAdicional += `\n🚙 Veículo próprio: Não possuo`;
+        }
+        
         // Usar o mesmo padrão do PC - mensagem simples e direta com emojis
         const message = `👋 Olá! Me chamo ${nome} e gostaria de me candidatar para uma vaga no Pastifício Selmi.
 
-📄 Segue meu currículo em anexo com minhas qualificações e experiências.
+📄 Segue meu currículo em anexo com minhas qualificações e experiências.${infoAdicional}
 
 🤝 Fico à disposição para uma entrevista.
 
@@ -364,8 +446,18 @@ function handleFormSubmit(event) {
     let isFormValid = true;
     
     // Validar todos os campos
+    console.log('=== DEBUG VALIDAÇÃO ===');
     fields.forEach(field => {
-        if (!validateField(field)) {
+        const fieldValid = validateField(field);
+        if (field.name === 'nome_completo') {
+            console.log('Campo nome_completo:', {
+                name: field.name,
+                value: field.value,
+                required: field.required,
+                valid: fieldValid
+            });
+        }
+        if (!fieldValid) {
             isFormValid = false;
         }
     });
@@ -382,8 +474,22 @@ function handleFormSubmit(event) {
         return false;
     }
     
+    // Verificação adicional específica para o nome antes de coletar dados
+    const nomeField = document.getElementById('nome_completo');
+    if (!nomeField || !nomeField.value.trim()) {
+        alert('Por favor, preencha o campo "Nome completo" antes de enviar.');
+        if (nomeField) nomeField.focus();
+        return false;
+    }
+    
     // Coletar dados
     const formData = collectFormData();
+    
+    // Debug: verificar dados coletados
+    console.log('=== DEBUG FORMULÁRIO ===');
+    console.log('Dados coletados:', formData);
+    console.log('Nome completo:', formData.nome_completo);
+    console.log('Tipo do nome_completo:', typeof formData.nome_completo);
     
     // Mostrar loading
     showLoadingState(true);
@@ -453,11 +559,11 @@ function showLoadingState(isLoading) {
     if (isLoading) {
         form.classList.add('form-loading');
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Enviando...';
+        submitBtn.innerHTML = 'Enviando...';
     } else {
         form.classList.remove('form-loading');
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Enviar Currículo';
+        submitBtn.innerHTML = '<span class="whatsapp-icon">📱</span> Enviar Currículo';
     }
 }
 
@@ -717,9 +823,34 @@ function sendToWhatsAppDirectly(formData) {
             throw new Error('Dados do formulário inválidos');
         }
         
-        // Verificar se campos essenciais existem
-        if (!formData.nome_completo || formData.nome_completo.trim() === '') {
-            throw new Error('Nome é obrigatório');
+        // Verificar se campos essenciais existem - validação mais robusta
+        console.log('=== DEBUG VERIFICAÇÃO NOME ===');
+        console.log('formData.nome_completo:', formData.nome_completo);
+        console.log('Tipo:', typeof formData.nome_completo);
+        
+        // Verificação mais robusta do nome
+        const nomeCompleto = formData.nome_completo;
+        const nomeValido = nomeCompleto && 
+                          typeof nomeCompleto === 'string' && 
+                          nomeCompleto.trim().length > 0;
+        
+        console.log('Nome válido?', nomeValido);
+        
+        if (!nomeValido) {
+            console.error('ERRO: Nome é obrigatório - valor recebido:', nomeCompleto);
+            
+            // Tentar pegar diretamente do campo se falhou na coleta
+            const nomeField = document.getElementById('nome_completo');
+            const nomeDirecto = nomeField ? nomeField.value.trim() : '';
+            
+            console.log('Tentativa direta do campo:', nomeDirecto);
+            
+            if (nomeDirecto && nomeDirecto.length > 0) {
+                formData.nome_completo = nomeDirecto;
+                console.log('Nome corrigido com valor direto:', nomeDirecto);
+            } else {
+                throw new Error('Nome é obrigatório');
+            }
         }
         
         console.log('Preparando mensagem para WhatsApp...');
