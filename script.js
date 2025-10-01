@@ -264,8 +264,8 @@ function createFormattedMessage(formData) {
             throw new Error('formData não fornecido');
         }
         
-        // Verificar campo obrigatório - usar o mesmo campo que o PC
-        const nome = formData.nome || formData.nome_completo || 'Candidato';
+        // Verificar campo obrigatório - usar nome_completo que é o campo correto
+        const nome = formData.nome_completo || 'Candidato';
         
         // Validação simples
         if (!nome || nome.trim() === '' || nome === 'Candidato') {
@@ -461,30 +461,7 @@ function showLoadingState(isLoading) {
     }
 }
 
-// Função para mostrar mensagem de sucesso
-function showSuccessMessage() {
-    // Criar elemento de mensagem se não existir
-    let successMsg = document.querySelector('.success-message');
-    if (!successMsg) {
-        successMsg = document.createElement('div');
-        successMsg.className = 'success-message';
-        document.querySelector('.container').insertBefore(successMsg, document.querySelector('.curriculum-form'));
-    }
-    
-    successMsg.innerHTML = `
-        <strong>Sucesso!</strong> Seu currículo foi enviado com sucesso. 
-        Entraremos em contato em breve. Obrigado!
-    `;
-    successMsg.style.display = 'block';
-    
-    // Scroll para o topo
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    // Ocultar após 5 segundos
-    setTimeout(() => {
-        successMsg.style.display = 'none';
-    }, 5000);
-}
+
 
 // Função para mostrar mensagem de erro
 function showErrorMessage() {
@@ -741,7 +718,7 @@ function sendToWhatsAppDirectly(formData) {
         }
         
         // Verificar se campos essenciais existem
-        if (!formData.nome || formData.nome.trim() === '') {
+        if (!formData.nome_completo || formData.nome_completo.trim() === '') {
             throw new Error('Nome é obrigatório');
         }
         
@@ -763,7 +740,7 @@ function sendToWhatsAppDirectly(formData) {
         const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
         
         console.log('=== DEBUG WHATSAPP ===');
-        console.log('Nome do candidato:', formData.nome);
+        console.log('Nome do candidato:', formData.nome_completo);
         console.log('Número:', phoneNumber);
         console.log('Mensagem criada com sucesso - tamanho:', whatsappMessage.length, 'caracteres');
         console.log('URL criada com sucesso - tamanho:', whatsappURL.length, 'caracteres');
@@ -2428,3 +2405,4 @@ function testWhatsAppWeb() {
     
     console.log('Teste WhatsApp Web - URL:', testURL);
 }
+
