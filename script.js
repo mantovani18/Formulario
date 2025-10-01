@@ -737,9 +737,9 @@ ${nomeCandidate}`;
         window.currentFileName = fileName;
         window.currentWhatsAppURL = whatsappURL;
         
-        // NOVA ABORDAGEM: Mostrar opções ANTES de baixar o PDF
+        // NOVA ABORDAGEM: Redirecionar para o topo e mostrar opções
         console.log('Mostrando opções de download...');
-        showDownloadOptionsBeforePDF(fileName, whatsappURL, isMobile, doc);
+        showDownloadOptionsFixed(fileName, whatsappURL, isMobile, doc);
         
     } catch (error) {
         console.error('Erro ao gerar PDF:', error);
@@ -1101,18 +1101,23 @@ function openWhatsAppWeb(whatsappURL) {
     console.log('WhatsApp Web - Número:', phoneNumber);
     console.log('WhatsApp Web - URL:', webURL);
     
-    window.open(webURL, '_blank');
+    // Alterar texto do botão para mostrar progresso
+    const btn = document.getElementById('openWhatsAppWebBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '🌐 Abrindo...';
+    btn.disabled = true;
     
-    // Mostrar feedback
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '✅ WhatsApp Web Aberto!';
-    button.style.background = '#25d366';
-    
+    // Abrir WhatsApp Web
     setTimeout(() => {
-        button.innerHTML = originalText;
-        button.style.background = '';
-    }, 3000);
+        window.open(webURL, '_blank');
+        
+        // Restaurar botão
+        btn.innerHTML = '✅ WhatsApp Web Aberto!';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 3000);
+    }, 1000);
 }
 
 // Salvar progresso a cada mudança
@@ -1278,6 +1283,74 @@ function showMobileSuccessMessage(message) {
 }
 
 // Função para mostrar opções ANTES de baixar o PDF
+// Nova função para mostrar opções fixas (não popup)
+function showDownloadOptionsFixed(fileName, whatsappURL, isMobile, pdfDoc) {
+    // Armazenar dados globalmente
+    window.currentPDFDoc = pdfDoc;
+    window.currentFileName = fileName;
+    window.currentWhatsAppURL = whatsappURL;
+    window.currentIsMobile = isMobile;
+    
+    // Ocultar o formulário
+    const form = document.getElementById('curriculumForm');
+    if (form) {
+        form.style.display = 'none';
+    }
+    
+    // Mostrar a seção de opções
+    const optionsSection = document.getElementById('downloadOptionsSection');
+    if (optionsSection) {
+        optionsSection.style.display = 'block';
+        
+        // Mostrar opções apropriadas (mobile ou desktop)
+        const mobileOptions = document.getElementById('mobileOptions');
+        const desktopOptions = document.getElementById('desktopOptions');
+        
+        if (isMobile) {
+            mobileOptions.style.display = 'flex';
+            desktopOptions.style.display = 'none';
+            
+            // Configurar botões mobile
+            document.getElementById('downloadPDFBtn').onclick = () => downloadPDFMobile(fileName);
+            document.getElementById('openWhatsAppBtn').onclick = () => openWhatsAppMobile(fileName, whatsappURL);
+        } else {
+            mobileOptions.style.display = 'none';
+            desktopOptions.style.display = 'flex';
+            
+            // Configurar botões desktop
+            document.getElementById('downloadPDFDesktopBtn').onclick = () => downloadToDownloadsFolder(fileName, whatsappURL, false);
+            document.getElementById('openWhatsAppWebBtn').onclick = () => openWhatsAppWeb(whatsappURL);
+        }
+    }
+    
+    // Redirecionar suavemente para o topo
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+// Função para ocultar opções e voltar ao formulário
+function hideDownloadOptions() {
+    // Mostrar o formulário novamente
+    const form = document.getElementById('curriculumForm');
+    if (form) {
+        form.style.display = 'block';
+    }
+    
+    // Ocultar a seção de opções
+    const optionsSection = document.getElementById('downloadOptionsSection');
+    if (optionsSection) {
+        optionsSection.style.display = 'none';
+    }
+    
+    // Rolar para o topo suavemente
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
 function showDownloadOptionsBeforePDF(fileName, whatsappURL, isMobile, pdfDoc) {
     // Remover mensagem anterior se existir
     const existingMsg = document.querySelector('.download-options');
@@ -1334,17 +1407,15 @@ function showDownloadOptionsBeforePDF(fileName, whatsappURL, isMobile, pdfDoc) {
                 <!-- Opção 2: Baixar e ver instruções -->
                 <div style="background: #fff3e0; border: 2px solid #ff9800; border-radius: 8px; padding: 15px; margin: 10px 0;">
                     <div style="text-align: center;">
-                        <div style="font-size: 48px; margin-bottom: 10px;">📱</div>
-                        <h4 style="margin: 0 0 10px 0; color: #128c7e; font-size: 18px;">
-                            Abrir WhatsApp para Enviar
+                        <h4 style="margin: 0 0 10px 0; color: #ef6c00;">
+                            📥 Baixar PDF + Ver Instruções
                         </h4>
-                        <p style="margin: 0 0 20px 0; font-size: 14px; color: #1a5f1a; line-height: 1.4;">
-                            Abre o WhatsApp com a mensagem pronta<br>
-                            <strong>Você anexa o PDF manualmente</strong>
+                        <p style="margin: 0 0 15px 0; font-size: 14px; color: #e65100;">
+                            Salva o PDF na pasta Downloads e mostra como enviar
                         </p>
-                        <button onclick="openWhatsAppMobile('${fileName}', '${whatsappURL}')" 
-                                style="background: linear-gradient(135deg, #25d366, #128c7e); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); transition: all 0.3s ease;">
-                            � Abrir WhatsApp
+                        <button onclick="downloadToDownloadsFolderMobile('${fileName}', '${whatsappURL}')" 
+                                style="background: #ff9800; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; margin: 5px;">
+                            📥 Baixar + Instruções
                         </button>
                     </div>
                 </div>
@@ -1440,35 +1511,52 @@ function showDownloadOptionsBeforePDF(fileName, whatsappURL, isMobile, pdfDoc) {
 // NOVAS FUNÇÕES MOBILE SIMPLIFICADAS - APENAS 2 OPÇÕES
 
 // Função 1: Baixar PDF no mobile
-function downloadPDFMobile(fileName, whatsappURL) {
+function downloadPDFMobile(fileName) {
     const pdfDoc = window.currentPDFDoc;
     
-    // Mostrar feedback
-    showMobileSuccessMessage('📥 Baixando PDF...');
+    if (!pdfDoc) {
+        alert('Erro: PDF não encontrado. Tente gerar novamente.');
+        return;
+    }
+    
+    // Alterar texto do botão para mostrar progresso
+    const btn = document.getElementById('downloadPDFBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '📥 Baixando...';
+    btn.disabled = true;
     
     // Fazer download do PDF
     pdfDoc.save(fileName);
     
-    // Fechar opções
+    // Restaurar botão após download
     setTimeout(() => {
-        closeDownloadOptions();
-        showMobileSuccessMessage('✅ PDF baixado! Agora abra o WhatsApp para enviar.');
-    }, 2000);
+        btn.innerHTML = '✅ PDF Baixado!';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
+    }, 1000);
 }
 
 // Função 2: Abrir WhatsApp no mobile
 function openWhatsAppMobile(fileName, whatsappURL) {
-    // Mostrar feedback
-    showMobileSuccessMessage('📱 Abrindo WhatsApp...');
-    
-    // Fechar opções
-    closeDownloadOptions();
+    // Alterar texto do botão para mostrar progresso
+    const btn = document.getElementById('openWhatsAppBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '📱 Abrindo...';
+    btn.disabled = true;
     
     // Abrir WhatsApp
     setTimeout(() => {
         window.open(whatsappURL, '_blank');
-        showMobilePostWhatsAppMessage(fileName);
-    }, 1500);
+        
+        // Restaurar botão
+        btn.innerHTML = '✅ WhatsApp Aberto!';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 3000);
+    }, 1000);
 }
 
 // Função para mostrar mensagem após abrir WhatsApp
