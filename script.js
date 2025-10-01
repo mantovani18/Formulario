@@ -256,21 +256,43 @@ function collectFormData() {
 
 // Função para criar mensagem formatada do WhatsApp
 function createFormattedMessage(formData) {
-    // Função para converter valores dos campos para texto legível
-    const formatEstadoCivil = (valor) => {
-        const estados = {
-            'solteiro': 'Solteiro(a)',
-            'casado': 'Casado(a)',
-            'uniao_estavel': 'União Estável',
-            'divorciado': 'Divorciado(a)',
-            'viuvo': 'Viúvo(a)'
+    try {
+        console.log('Criando mensagem formatada...');
+        
+        // Verificar se formData existe
+        if (!formData) {
+            throw new Error('formData não fornecido');
+        }
+        
+        // Função para converter valores dos campos para texto legível
+        const formatEstadoCivil = (valor) => {
+            const estados = {
+                'solteiro': 'Solteiro(a)',
+                'casado': 'Casado(a)',
+                'uniao_estavel': 'União Estável',
+                'divorciado': 'Divorciado(a)',
+                'viuvo': 'Viúvo(a)'
+            };
+            return estados[valor] || valor || 'Não informado';
         };
-        return estados[valor] || valor || 'Não informado';
-    };
-    
-    const message = `🍝 *PASTIFÍCIO SELMI - CURRÍCULO*
+        
+        // Função para limpar e validar texto
+        const limparTexto = (texto) => {
+            if (!texto) return 'Não informado';
+            return String(texto).trim() || 'Não informado';
+        };
+        
+        // Verificar campo obrigatório
+        const nome = limparTexto(formData.nome);
+        if (nome === 'Não informado' || nome === '') {
+            throw new Error('Nome é obrigatório para criar a mensagem');
+        }
+        
+        console.log('Nome validado:', nome);
+        
+        const message = `🍝 *PASTIFÍCIO SELMI - CURRÍCULO*
 
-👋 Olá! Me chamo *${formData.nome}* e gostaria de me candidatar para uma vaga no Pastifício Selmi.
+👋 Olá! Me chamo *${nome}* e gostaria de me candidatar para uma vaga no Pastifício Selmi.
 
 📋 *DADOS PESSOAIS*
 • Nome: ${formData.nome}
@@ -318,7 +340,13 @@ ${formData.observacoes || 'Nenhuma observação adicional'}
 
 Aguardo um retorno! Obrigado(a)! 😊`;
 
-    return message;
+        console.log('Mensagem formatada criada com sucesso');
+        return message;
+        
+    } catch (error) {
+        console.error('Erro ao criar mensagem formatada:', error);
+        throw new Error(`Erro ao formatar mensagem: ${error.message}`);
+    }
 }
 
 // Função para criar botão manual caso o redirecionamento automático falhe
@@ -759,11 +787,29 @@ function removeExtraItems(type) {
 
 // Função para enviar diretamente para WhatsApp (sem PDF)
 function sendToWhatsAppDirectly(formData) {
+    console.log('=== INICIANDO ENVIO WHATSAPP ===');
+    console.log('Dados recebidos:', formData);
+    
     try {
+        // Verificar se formData é válido
+        if (!formData || typeof formData !== 'object') {
+            throw new Error('Dados do formulário inválidos');
+        }
+        
+        // Verificar se campos essenciais existem
+        if (!formData.nome || formData.nome.trim() === '') {
+            throw new Error('Nome é obrigatório');
+        }
+        
         console.log('Preparando mensagem para WhatsApp...');
         
         // Criar mensagem formatada com todos os dados
         const whatsappMessage = createFormattedMessage(formData);
+        
+        // Verificar se a mensagem foi criada corretamente
+        if (!whatsappMessage || whatsappMessage.trim() === '') {
+            throw new Error('Erro ao criar mensagem formatada');
+        }
         
         // Número do WhatsApp
         const phoneNumber = '5519971238643';
@@ -773,11 +819,15 @@ function sendToWhatsAppDirectly(formData) {
         const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
         
         console.log('=== DEBUG WHATSAPP ===');
+        console.log('Nome do candidato:', formData.nome);
         console.log('Número:', phoneNumber);
-        console.log('Mensagem original (primeiros 200 chars):', whatsappMessage.substring(0, 200));
-        console.log('Mensagem codificada (primeiros 200 chars):', encodedMessage.substring(0, 200));
-        console.log('URL completa (primeiros 300 chars):', whatsappURL.substring(0, 300));
-        console.log('Tamanho da URL:', whatsappURL.length);
+        console.log('Mensagem criada com sucesso - tamanho:', whatsappMessage.length, 'caracteres');
+        console.log('URL criada com sucesso - tamanho:', whatsappURL.length, 'caracteres');
+        
+        // Verificar se URL não está muito longa (limite de segurança)
+        if (whatsappURL.length > 8000) {
+            console.warn('URL muito longa, pode causar problemas em alguns dispositivos');
+        }
         
         // Detectar dispositivo com detecção aprimorada
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
@@ -822,18 +872,44 @@ function sendToWhatsAppDirectly(formData) {
         }, 3000);
         
     } catch (error) {
-        console.error('Erro ao enviar para WhatsApp:', error);
+        console.error('=== ERRO NO ENVIO WHATSAPP ===');
+        console.error('Tipo do erro:', error.name);
+        console.error('Mensagem:', error.message);
+        console.error('Stack:', error.stack);
+        console.error('Dados do formulário:', formData);
         
-        // Mostrar erro detalhado e opção manual
-        alert(`Erro ao abrir WhatsApp automaticamente. 
+        // Remover estado de loading
+        showLoadingState(false);
         
-Erro: ${error.message}
+        // Criar mensagem de erro mais amigável
+        let errorMessage = 'Ocorreu um problema ao preparar o envio.';
+        
+        if (error.message.includes('Nome é obrigatório')) {
+            errorMessage = 'Por favor, preencha o campo Nome.';
+        } else if (error.message.includes('Dados do formulário inválidos')) {
+            errorMessage = 'Erro nos dados do formulário. Tente preencher novamente.';
+        } else if (error.message.includes('criar mensagem formatada')) {
+            errorMessage = 'Erro ao formatar a mensagem. Verifique os dados preenchidos.';
+        } else {
+            errorMessage = `Erro técnico: ${error.message}`;
+        }
+        
+        // Mostrar erro para o usuário
+        alert(`❌ Erro ao Enviar Currículo
 
-Você pode tentar:
-1. Copiar o link manualmente
-2. Usar o botão que aparecerá na tela`);
+${errorMessage}
+
+🔧 Você pode:
+1. Verificar se todos os campos obrigatórios estão preenchidos
+2. Tentar novamente
+3. Recarregar a página se o problema persistir
+
+Se o erro continuar, entre em contato diretamente pelo WhatsApp: (19) 99712-3864`);
         
-        createManualWhatsAppButton(whatsappURL);
+        // Não criar botão manual se não temos URL válida
+        if (typeof whatsappURL !== 'undefined' && whatsappURL.length > 0) {
+            createManualWhatsAppButton(whatsappURL);
+        }
     }
 }
 
