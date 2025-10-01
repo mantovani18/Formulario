@@ -321,6 +321,68 @@ Aguardo um retorno! Obrigado(a)! 😊`;
     return message;
 }
 
+// Função para criar botão manual caso o redirecionamento automático falhe
+function createManualWhatsAppButton(whatsappURL) {
+    // Verificar se já existe um botão manual
+    const existingButton = document.getElementById('manualWhatsAppButton');
+    if (existingButton) {
+        existingButton.remove();
+    }
+    
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    const buttonDiv = document.createElement('div');
+    buttonDiv.id = 'manualWhatsAppButton';
+    buttonDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10000;
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        border: 3px solid #25d366;
+        text-align: center;
+        max-width: 90%;
+        width: 400px;
+    `;
+    
+    buttonDiv.innerHTML = `
+        <h3 style="color: #25d366; margin: 0 0 15px 0;">📱 Abrir WhatsApp</h3>
+        <p style="margin: 0 0 20px 0; color: #666;">
+            ${isMobile ? 'Clique no botão abaixo para abrir o WhatsApp:' : 'Clique para abrir o WhatsApp Web:'}
+        </p>
+        
+        <button onclick="window.open('${whatsappURL}', '${isMobile ? '_self' : '_blank'}')" 
+                style="background: #25d366; color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; margin: 10px;">
+            📱 Abrir WhatsApp
+        </button>
+        
+        <button onclick="navigator.clipboard.writeText('${whatsappURL}').then(() => alert('Link copiado! Cole no seu WhatsApp')).catch(() => alert('Link: ${whatsappURL}'))" 
+                style="background: #007bff; color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: bold; cursor: pointer; margin: 10px;">
+            📋 Copiar Link
+        </button>
+        
+        <br><br>
+        
+        <button onclick="this.parentElement.remove()" 
+                style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 14px; cursor: pointer;">
+            ❌ Fechar
+        </button>
+    `;
+    
+    document.body.appendChild(buttonDiv);
+    
+    // Remover automaticamente após 30 segundos
+    setTimeout(() => {
+        if (buttonDiv.parentElement) {
+            buttonDiv.remove();
+        }
+    }, 30000);
+}
+
 // Função para enviar o formulário
 function handleFormSubmit(event) {
     event.preventDefault();
@@ -710,24 +772,68 @@ function sendToWhatsAppDirectly(formData) {
         const encodedMessage = encodeURIComponent(whatsappMessage);
         const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
         
-        console.log('Mensagem criada:', whatsappMessage);
-        console.log('URL WhatsApp:', whatsappURL);
+        console.log('=== DEBUG WHATSAPP ===');
+        console.log('Número:', phoneNumber);
+        console.log('Mensagem original (primeiros 200 chars):', whatsappMessage.substring(0, 200));
+        console.log('Mensagem codificada (primeiros 200 chars):', encodedMessage.substring(0, 200));
+        console.log('URL completa (primeiros 300 chars):', whatsappURL.substring(0, 300));
+        console.log('Tamanho da URL:', whatsappURL.length);
         
-        // Detectar dispositivo
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        // Detectar dispositivo com detecção aprimorada
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                         (navigator.maxTouchPoints && navigator.maxTouchPoints > 2) ||
+                         window.innerWidth <= 768;
         
         console.log('Dispositivo detectado:', isMobile ? 'Mobile' : 'Desktop');
+        console.log('User Agent:', navigator.userAgent);
         
-        // Redirecionar diretamente para WhatsApp - MESMO COMPORTAMENTO PARA TODOS
-        console.log('Abrindo WhatsApp...');
-        window.open(whatsappURL, '_blank');
+        // Redirecionar para WhatsApp com tratamento específico por dispositivo
+        console.log('Tentando abrir WhatsApp...');
         
-        // Mostrar mensagem de sucesso
-        showSuccessMessage();
+        if (isMobile) {
+            // Para mobile: tentar múltiplas abordagens
+            try {
+                console.log('Método 1: Tentando window.location.href');
+                window.location.href = whatsappURL;
+            } catch (error) {
+                console.log('Método 1 falhou, tentando window.open');
+                try {
+                    window.open(whatsappURL, '_self');
+                } catch (error2) {
+                    console.log('Método 2 falhou, tentando window.open _blank');
+                    window.open(whatsappURL, '_blank');
+                }
+            }
+        } else {
+            // Para desktop: abrir em nova aba
+            console.log('Desktop: usando window.open _blank');
+            window.open(whatsappURL, '_blank');
+        }
+        
+        // Mostrar mensagem de sucesso após um pequeno delay
+        setTimeout(() => {
+            showSuccessMessage();
+        }, 1000);
+        
+        // Adicionar fallback manual
+        setTimeout(() => {
+            console.log('Criando botão de fallback manual...');
+            createManualWhatsAppButton(whatsappURL);
+        }, 3000);
         
     } catch (error) {
         console.error('Erro ao enviar para WhatsApp:', error);
-        alert('Erro ao preparar mensagem. Tente novamente.');
+        
+        // Mostrar erro detalhado e opção manual
+        alert(`Erro ao abrir WhatsApp automaticamente. 
+        
+Erro: ${error.message}
+
+Você pode tentar:
+1. Copiar o link manualmente
+2. Usar o botão que aparecerá na tela`);
+        
+        createManualWhatsAppButton(whatsappURL);
     }
 }
 
