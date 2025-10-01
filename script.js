@@ -732,6 +732,13 @@ ${nomeCandidate}`;
         console.log('Dispositivo móvel detectado:', isMobile);
         console.log('URL WhatsApp:', whatsappURL);
         
+        // DEBUG: Mostrar URL gerada
+        console.log('=== DEBUG WHATSAPP ===');
+        console.log('Número telefone:', phoneNumber);
+        console.log('Mensagem original:', whatsappMessage);
+        console.log('Mensagem codificada:', encodedMessage);
+        console.log('URL final gerada:', whatsappURL);
+        
         // Armazenar PDF globalmente para reutilização
         window.currentPDFDoc = doc;
         window.currentFileName = fileName;
@@ -1092,12 +1099,12 @@ function showFallbackNotification() {
 
 // Função para abrir WhatsApp Web
 function openWhatsAppWeb(whatsappURL) {
-    console.log('Abrindo WhatsApp Web:', whatsappURL);
+    console.log('=== ABRINDO WHATSAPP WEB ===');
+    console.log('whatsappURL original:', whatsappURL);
     
-    // Para WhatsApp Web, podemos usar a URL direta ou converter para formato web
+    // Para WhatsApp Web, converter URL wa.me para web.whatsapp.com
     let webURL = whatsappURL;
     
-    // Se for uma URL wa.me, converter para web.whatsapp.com
     if (whatsappURL.includes('wa.me/')) {
         const phoneNumber = '5519971238643';
         const message = whatsappURL.split('text=')[1]; // Extrair mensagem da URL
@@ -1106,18 +1113,32 @@ function openWhatsAppWeb(whatsappURL) {
     
     console.log('WhatsApp Web - URL Final:', webURL);
     
-    // Abrir WhatsApp Web
-    window.open(webURL, '_blank');
-    
     // Feedback visual
     const btn = document.getElementById('openWhatsAppWebBtn');
     if (btn) {
         const originalText = btn.innerHTML;
-        btn.innerHTML = '✅ WhatsApp Web Aberto!';
+        btn.innerHTML = '🌐 Abrindo...';
+        btn.disabled = true;
+        
         setTimeout(() => {
-            btn.innerHTML = originalText;
-        }, 3000);
+            btn.innerHTML = '✅ WhatsApp Web Aberto!';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }, 1000);
     }
+    
+    // Abrir WhatsApp Web com delay
+    setTimeout(() => {
+        try {
+            console.log('Abrindo WhatsApp Web...');
+            window.open(webURL, '_blank');
+        } catch (error) {
+            console.error('Erro ao abrir WhatsApp Web:', error);
+            alert('Erro ao abrir WhatsApp Web. Tente copiar o link manualmente.');
+        }
+    }, 1500);
 }
 
 // Salvar progresso a cada mudança
@@ -1311,15 +1332,53 @@ function showDownloadOptionsFixed(fileName, whatsappURL, isMobile, pdfDoc) {
             desktopOptions.style.display = 'none';
             
             // Configurar botões mobile
-            document.getElementById('downloadPDFBtn').onclick = () => downloadPDFMobile(fileName);
-            document.getElementById('openWhatsAppBtn').onclick = () => openWhatsAppMobile(fileName, whatsappURL);
+            console.log('Configurando botões mobile...');
+            const downloadBtn = document.getElementById('downloadPDFBtn');
+            const whatsappBtn = document.getElementById('openWhatsAppBtn');
+            
+            console.log('Botão download encontrado:', downloadBtn);
+            console.log('Botão whatsapp encontrado:', whatsappBtn);
+            
+            if (downloadBtn) {
+                downloadBtn.onclick = () => {
+                    console.log('Clicou no botão de download');
+                    downloadPDFMobile(fileName);
+                };
+            }
+            
+            if (whatsappBtn) {
+                whatsappBtn.onclick = () => {
+                    console.log('Clicou no botão do WhatsApp');
+                    console.log('Chamando openWhatsAppMobile com:', fileName, whatsappURL);
+                    openWhatsAppMobile(fileName, whatsappURL);
+                };
+            }
         } else {
             mobileOptions.style.display = 'none';
             desktopOptions.style.display = 'flex';
             
             // Configurar botões desktop
-            document.getElementById('downloadPDFDesktopBtn').onclick = () => downloadToDownloadsFolder(fileName, whatsappURL, false);
-            document.getElementById('openWhatsAppWebBtn').onclick = () => openWhatsAppWeb(whatsappURL);
+            console.log('Configurando botões desktop...');
+            const downloadDesktopBtn = document.getElementById('downloadPDFDesktopBtn');
+            const whatsappWebBtn = document.getElementById('openWhatsAppWebBtn');
+            
+            console.log('Botão download desktop encontrado:', downloadDesktopBtn);
+            console.log('Botão whatsapp web encontrado:', whatsappWebBtn);
+            
+            if (downloadDesktopBtn) {
+                downloadDesktopBtn.onclick = () => {
+                    console.log('Clicou no botão de download desktop');
+                    downloadToDownloadsFolder(fileName, whatsappURL, false);
+                };
+            }
+            
+            if (whatsappWebBtn) {
+                whatsappWebBtn.onclick = () => {
+                    console.log('Clicou no botão do WhatsApp Web');
+                    console.log('Chamando openWhatsAppWeb com:', whatsappURL);
+                    openWhatsAppWeb(whatsappURL);
+                };
+            }
         }
     }
     
@@ -1537,35 +1596,51 @@ function downloadPDFMobile(fileName) {
 
 // Função 2: Abrir WhatsApp no mobile
 function openWhatsAppMobile(fileName, whatsappURL) {
-    console.log('Abrindo WhatsApp Mobile:', whatsappURL);
+    console.log('=== ABRINDO WHATSAPP MOBILE ===');
+    console.log('fileName:', fileName);
+    console.log('whatsappURL:', whatsappURL);
     
     // Verificar se é mobile
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log('É mobile?', isMobile);
+    console.log('User Agent:', navigator.userAgent);
     
-    if (isMobile) {
-        // Para mobile: tentar primeiro o app nativo, depois o web
-        try {
-            // Tentar abrir o app nativo do WhatsApp
-            window.location.href = whatsappURL;
-        } catch (error) {
-            console.log('Erro ao abrir app nativo, tentando WhatsApp Web:', error);
-            // Se falhar, abrir WhatsApp Web
-            window.open(whatsappURL, '_blank');
-        }
-    } else {
-        // Para desktop: abrir em nova aba
-        window.open(whatsappURL, '_blank');
-    }
-    
-    // Feedback visual
+    // Feedback visual imediato
     const btn = document.getElementById('openWhatsAppBtn');
     if (btn) {
         const originalText = btn.innerHTML;
-        btn.innerHTML = '✅ WhatsApp Aberto!';
+        btn.innerHTML = '📱 Abrindo...';
+        btn.disabled = true;
+        
+        // Restaurar botão após 3 segundos
         setTimeout(() => {
-            btn.innerHTML = originalText;
-        }, 3000);
+            btn.innerHTML = '✅ WhatsApp Aberto!';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }, 1000);
     }
+    
+    // Abrir WhatsApp com delay para feedback visual
+    setTimeout(() => {
+        try {
+            console.log('Tentando abrir URL:', whatsappURL);
+            
+            if (isMobile) {
+                // Para mobile: usar window.location.href para abrir o app nativo
+                console.log('Abrindo no mobile com window.location.href');
+                window.location.href = whatsappURL;
+            } else {
+                // Para desktop: abrir em nova aba
+                console.log('Abrindo no desktop com window.open');
+                window.open(whatsappURL, '_blank');
+            }
+        } catch (error) {
+            console.error('Erro ao abrir WhatsApp:', error);
+            alert('Erro ao abrir WhatsApp. Tente copiar o link manualmente.');
+        }
+    }, 1500);
 }
 
 // Função para mostrar mensagem após abrir WhatsApp
@@ -2003,22 +2078,59 @@ function showDesktopPostWhatsAppInstructions(fileName) {
 
 // Funções de teste para WhatsApp
 function testWhatsAppLink() {
+    console.log('=== INICIANDO TESTE DO WHATSAPP ===');
+    
     const phoneNumber = '5519971238643';
-    const testMessage = 'Teste de link do WhatsApp - Pastificio Selmi';
+    const testMessage = `Olá! Este é um teste do formulário do Pastifício Selmi.
+    
+📋 TESTE DE FUNCIONAMENTO:
+- Formulário: ✅ Funcionando
+- PDF: ✅ Funcionando  
+- WhatsApp: 🔄 Testando agora
+- Data/Hora: ${new Date().toLocaleString('pt-BR')}
+
+Se você recebeu esta mensagem, o sistema está funcionando perfeitamente! 🎉`;
+
     const encodedMessage = encodeURIComponent(testMessage);
     const testURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     
-    const resultDiv = document.getElementById('testResult');
-    resultDiv.innerHTML = `
-        <div style="background: #e7f3ff; padding: 10px; border-radius: 4px; margin: 10px 0;">
-            <strong>📱 Teste WhatsApp App:</strong><br>
-            <strong>Número:</strong> ${phoneNumber}<br>
-            <strong>URL:</strong> <code>${testURL}</code><br>
-            <a href="${testURL}" target="_blank" style="color: #25d366; text-decoration: underline;">👆 Clique aqui para testar</a>
-        </div>
-    `;
+    console.log('Número:', phoneNumber);
+    console.log('URL final:', testURL);
     
-    console.log('Teste WhatsApp - URL:', testURL);
+    // Detectar dispositivo
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    const resultDiv = document.getElementById('testResult');
+    if (resultDiv) {
+        resultDiv.innerHTML = `
+            <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 10px 0; border: 2px solid #25d366;">
+                <h4 style="margin: 0 0 10px 0; color: #25d366;">📱 Teste WhatsApp</h4>
+                <p><strong>Dispositivo:</strong> ${isMobile ? 'Mobile' : 'Desktop'}<br>
+                <strong>Número:</strong> ${phoneNumber}<br>
+                <strong>URL:</strong> <code style="font-size: 12px; word-break: break-all;">${testURL}</code></p>
+                
+                <button onclick="window.open('${testURL}', '_blank')" 
+                        style="background: #25d366; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin: 5px;">
+                    � Testar WhatsApp App
+                </button>
+                
+                <button onclick="window.location.href='${testURL}'" 
+                        style="background: #128c7e; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin: 5px;">
+                    📱 Abrir com location.href
+                </button>
+            </div>
+        `;
+    }
+    
+    // Abrir automaticamente também
+    setTimeout(() => {
+        console.log('Abrindo WhatsApp automaticamente...');
+        if (isMobile) {
+            window.location.href = testURL;
+        } else {
+            window.open(testURL, '_blank');
+        }
+    }, 2000);
 }
 
 function testWhatsAppWeb() {
