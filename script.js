@@ -1305,55 +1305,59 @@ function showDownloadOptionsBeforePDF(fileName, whatsappURL, isMobile, pdfDoc) {
                 </h3>
                 
                 ${isMobile ? `
-                <!-- OPÇÕES PARA MOBILE -->
+                <!-- OPÇÕES PARA MOBILE - SEM ABRIR PDF AUTOMATICAMENTE -->
                 <div style="text-align: center; margin: 20px 0;">
-                    <h4 style="color: #1976d2; margin: 15px 0;">📱 Como você quer prosseguir no celular?</h4>
+                    <h4 style="color: #1976d2; margin: 15px 0;">📱 Como enviar seu currículo no celular?</h4>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                        <strong>📌 Importante:</strong> Escolha a opção de envio abaixo. O PDF <strong>não será aberto automaticamente</strong>.
+                    </p>
                 </div>
                 
-                <!-- Opção 1: Escolher onde salvar -->
+                <!-- Opção 1: PRINCIPAL - Instruções completas -->
                 <div style="background: #e8f5e8; border: 2px solid #4caf50; border-radius: 8px; padding: 15px; margin: 10px 0;">
                     <div style="text-align: center;">
                         <h4 style="margin: 0 0 10px 0; color: #2e7d32;">
-                            🎯 RECOMENDADO: Escolher Pasta
+                            🎯 RECOMENDADO: Ver Instruções Completas
                         </h4>
                         <p style="margin: 0 0 15px 0; font-size: 14px; color: #388e3c;">
-                            <strong>Você escolhe</strong> onde salvar o PDF no seu celular
+                            Mostra como salvar o PDF e enviar pelo WhatsApp<br>
+                            <strong>Sem abrir o PDF automaticamente</strong>
                         </p>
-                        <button onclick="chooseDownloadLocation('${fileName}', '${whatsappURL}', ${isMobile})" 
+                        <button onclick="showMobileInstructionsOnly('${fileName}', '${whatsappURL}')" 
                                 style="background: #4caf50; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; margin: 5px;">
-                            📂 Escolher Onde Salvar PDF
+                            � Ver Instruções de Envio
                         </button>
                     </div>
                 </div>
                 
-                <!-- Opção 2: Downloads automático -->
+                <!-- Opção 2: Baixar e ver instruções -->
                 <div style="background: #fff3e0; border: 2px solid #ff9800; border-radius: 8px; padding: 15px; margin: 10px 0;">
                     <div style="text-align: center;">
                         <h4 style="margin: 0 0 10px 0; color: #ef6c00;">
-                            📥 Salvar na Pasta Downloads
+                            📥 Baixar PDF + Ver Instruções
                         </h4>
                         <p style="margin: 0 0 15px 0; font-size: 14px; color: #e65100;">
-                            PDF vai automaticamente para a pasta <strong>Downloads</strong>
+                            Salva o PDF na pasta Downloads e mostra como enviar
                         </p>
-                        <button onclick="downloadToDownloadsFolder('${fileName}', '${whatsappURL}', ${isMobile})" 
+                        <button onclick="downloadToDownloadsFolderMobile('${fileName}', '${whatsappURL}')" 
                                 style="background: #ff9800; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; margin: 5px;">
-                            📥 Baixar para Downloads
+                            📥 Baixar + Instruções
                         </button>
                     </div>
                 </div>
                 
-                <!-- Opção 3: Direto para WhatsApp -->
+                <!-- Opção 3: Escolher onde salvar -->
                 <div style="background: #f3e5f5; border: 2px solid #9c27b0; border-radius: 8px; padding: 15px; margin: 10px 0;">
                     <div style="text-align: center;">
                         <h4 style="margin: 0 0 10px 0; color: #7b1fa2;">
-                            🚀 Enviar Direto pro WhatsApp
+                            � Escolher Onde Salvar PDF
                         </h4>
                         <p style="margin: 0 0 15px 0; font-size: 14px; color: #8e24aa;">
-                            Baixa automaticamente e abre o WhatsApp
+                            Você escolhe a pasta + instruções de envio
                         </p>
-                        <button onclick="downloadAndGoToWhatsApp('${fileName}', '${whatsappURL}', ${isMobile})" 
+                        <button onclick="chooseDownloadLocationMobile('${fileName}', '${whatsappURL}')" 
                                 style="background: #9c27b0; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; margin: 5px;">
-                            🚀 Baixar + WhatsApp
+                            � Escolher Pasta + Instruções
                         </button>
                     </div>
                 </div>
@@ -1430,7 +1434,237 @@ function showDownloadOptionsBeforePDF(fileName, whatsappURL, isMobile, pdfDoc) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Função 1: Escolher onde salvar (mobile com File System Access API)
+// NOVAS FUNÇÕES MOBILE - SEM ABRIR PDF AUTOMATICAMENTE
+
+// Função 1: Mostrar apenas instruções (sem baixar automaticamente)
+function showMobileInstructionsOnly(fileName, whatsappURL) {
+    closeDownloadOptions();
+    showMobileInstructionsComplete(fileName, whatsappURL, false); // false = não baixou ainda
+}
+
+// Função 2: Baixar para Downloads e mostrar instruções mobile
+function downloadToDownloadsFolderMobile(fileName, whatsappURL) {
+    const pdfDoc = window.currentPDFDoc;
+    
+    // Mostrar feedback
+    showMobileSuccessMessage('📥 Baixando PDF para Downloads...');
+    
+    // Fazer download tradicional (SEM abrir)
+    pdfDoc.save(fileName);
+    
+    // Após download, fechar opções e mostrar instruções
+    setTimeout(() => {
+        closeDownloadOptions();
+        showMobileInstructionsComplete(fileName, whatsappURL, true); // true = já baixou
+    }, 2000);
+}
+
+// Função 3: Escolher onde salvar no mobile
+async function chooseDownloadLocationMobile(fileName, whatsappURL) {
+    try {
+        const pdfDoc = window.currentPDFDoc;
+        
+        // Tentar usar File System Access API
+        if ('showSaveFilePicker' in window) {
+            const fileHandle = await window.showSaveFilePicker({
+                suggestedName: fileName,
+                types: [
+                    {
+                        description: 'PDF files',
+                        accept: {
+                            'application/pdf': ['.pdf'],
+                        },
+                    },
+                ],
+            });
+            
+            const writable = await fileHandle.createWritable();
+            const pdfBlob = new Blob([pdfDoc.output('blob')], { type: 'application/pdf' });
+            await writable.write(pdfBlob);
+            await writable.close();
+            
+            showMobileSuccessMessage('✅ PDF salvo com sucesso na pasta escolhida!');
+            
+            // Após salvar, mostrar instruções
+            setTimeout(() => {
+                closeDownloadOptions();
+                showMobileInstructionsComplete(fileName, whatsappURL, true);
+            }, 1500);
+            
+        } else {
+            // Fallback: download tradicional
+            showMobileSuccessMessage('⚠️ Usando download tradicional para Downloads...');
+            downloadToDownloadsFolderMobile(fileName, whatsappURL);
+        }
+        
+    } catch (error) {
+        console.log('Usuário cancelou ou erro:', error);
+        // Se cancelar, apenas mostrar instruções sem baixar
+        showMobileInstructionsOnly(fileName, whatsappURL);
+    }
+}
+
+// FUNÇÃO PRINCIPAL: Instruções completas para mobile
+function showMobileInstructionsComplete(fileName, whatsappURL, pdfDownloaded) {
+    // Remover mensagem anterior se existir
+    const existingMsg = document.querySelector('.whatsapp-instructions');
+    if (existingMsg) {
+        existingMsg.remove();
+    }
+    
+    // Criar nova mensagem de instruções
+    const instructionsMsg = document.createElement('div');
+    instructionsMsg.className = 'whatsapp-instructions';
+    
+    instructionsMsg.innerHTML = `
+        <div class="instruction-header">
+            <span class="whatsapp-logo">📱</span>
+            <strong>📋 Instruções para Enviar pelo WhatsApp (Mobile)</strong>
+        </div>
+        
+        <div class="instruction-content">
+            <div style="background: #e7f3ff; border: 2px solid #2196f3; border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center;">
+                <h3 style="color: #1976d2; margin: 0 0 15px 0;">
+                    📄 Arquivo: <code>${fileName}</code>
+                </h3>
+                <div style="background: ${pdfDownloaded ? '#d4edda' : '#fff3cd'}; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                    <strong style="color: ${pdfDownloaded ? '#155724' : '#856404'};">
+                        ${pdfDownloaded ? '✅ PDF já baixado!' : '📋 PDF ainda não foi baixado'}
+                    </strong>
+                </div>
+            </div>
+            
+            <!-- Seção 1: Baixar o PDF (se necessário) -->
+            ${!pdfDownloaded ? `
+            <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin: 15px 0;">
+                <h4 style="color: #856404; margin: 0 0 15px 0;">📥 PASSO 1: Baixar o PDF</h4>
+                <div style="text-align: center;">
+                    <button onclick="downloadPDFNow('${fileName}')" 
+                            style="background: #ffc107; color: #212529; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; margin: 10px;">
+                        📥 Baixar PDF Agora
+                    </button>
+                    <button onclick="choosePDFLocation('${fileName}')" 
+                            style="background: #6f42c1; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; margin: 10px;">
+                        📂 Escolher Onde Salvar
+                    </button>
+                </div>
+                <p style="font-size: 13px; color: #856404; text-align: center; margin: 10px 0 0 0;">
+                    <strong>💡 Dica:</strong> Lembre-se onde salvou o arquivo!
+                </p>
+            </div>
+            ` : `
+            <div style="background: #d4edda; border: 2px solid #28a745; border-radius: 8px; padding: 15px; margin: 15px 0; text-align: center;">
+                <h4 style="color: #155724; margin: 0 0 10px 0;">✅ PDF já baixado com sucesso!</h4>
+                <p style="color: #155724; margin: 0; font-size: 14px;">
+                    Se precisar baixar novamente, use os botões abaixo.
+                </p>
+                <div style="margin-top: 15px;">
+                    <button onclick="downloadPDFNow('${fileName}')" 
+                            style="background: #28a745; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; margin: 5px;">
+                        📥 Baixar Novamente
+                    </button>
+                    <button onclick="choosePDFLocation('${fileName}')" 
+                            style="background: #6f42c1; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; margin: 5px;">
+                        📂 Escolher Local
+                    </button>
+                </div>
+            </div>
+            `}
+            
+            <!-- Seção 2: Abrir WhatsApp e Anexar -->
+            <div style="background: #e7f9e7; border: 2px solid #25d366; border-radius: 8px; padding: 15px; margin: 15px 0;">
+                <h4 style="color: #1a5f1a; margin: 0 0 15px 0;">📱 PASSO 2: Enviar pelo WhatsApp</h4>
+                
+                <!-- Botão para abrir WhatsApp -->
+                <div style="text-align: center; margin: 15px 0;">
+                    <button onclick="openWhatsAppForMobile('${whatsappURL}')" 
+                            style="background: #25d366; color: white; border: none; padding: 15px 25px; border-radius: 12px; font-size: 18px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);">
+                        📱 Abrir WhatsApp Agora
+                    </button>
+                </div>
+                
+                <!-- Instruções detalhadas -->
+                <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <h5 style="color: #1a5f1a; margin: 0 0 10px 0;">📋 Como anexar o PDF no WhatsApp:</h5>
+                    <ol style="color: #2d5a2d; margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
+                        <li><strong>Clique no botão acima</strong> para abrir o WhatsApp</li>
+                        <li>No WhatsApp, <strong>clique no ícone de anexo</strong> (📎 ou +)</li>
+                        <li>Escolha <strong>"Documento"</strong> ou <strong>"Arquivo"</strong></li>
+                        <li>Procure e selecione: <code style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">${fileName}</code></li>
+                        <li><strong>Anexe o PDF</strong> e clique em <strong>"Enviar"</strong></li>
+                    </ol>
+                </div>
+                
+                <!-- Preview da mensagem -->
+                <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; margin: 15px 0;">
+                    <h6 style="color: #495057; margin: 0 0 8px 0; font-size: 13px;">📝 Mensagem que será enviada:</h6>
+                    <div style="font-style: italic; color: #6c757d; font-size: 13px; line-height: 1.4;">
+                        "Olá! Me chamo [Seu Nome] e gostaria de me candidatar para uma vaga no Pastifício Selmi. Segue meu currículo em anexo..."
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botões de ação -->
+            <div style="text-align: center; margin: 20px 0; padding-top: 15px; border-top: 1px solid #ddd;">
+                <button onclick="location.reload()" 
+                        style="background: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; margin: 5px; font-weight: bold;">
+                    🔄 Fazer Novo Currículo
+                </button>
+                <button onclick="closeInstructions()" 
+                        style="background: #6c757d; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; margin: 5px;">
+                    ❌ Fechar Instruções
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Inserir no topo da página
+    document.querySelector('.container').insertBefore(instructionsMsg, document.querySelector('header'));
+    
+    // Scroll para o topo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Funções auxiliares para as instruções mobile
+function downloadPDFNow(fileName) {
+    const pdfDoc = window.currentPDFDoc;
+    pdfDoc.save(fileName);
+    showMobileSuccessMessage('📥 PDF baixado para Downloads!');
+}
+
+async function choosePDFLocation(fileName) {
+    try {
+        const pdfDoc = window.currentPDFDoc;
+        
+        if ('showSaveFilePicker' in window) {
+            const fileHandle = await window.showSaveFilePicker({
+                suggestedName: fileName,
+                types: [{ description: 'PDF files', accept: { 'application/pdf': ['.pdf'] }}]
+            });
+            
+            const writable = await fileHandle.createWritable();
+            const pdfBlob = new Blob([pdfDoc.output('blob')], { type: 'application/pdf' });
+            await writable.write(pdfBlob);
+            await writable.close();
+            
+            showMobileSuccessMessage('✅ PDF salvo na pasta escolhida!');
+        } else {
+            // Fallback
+            downloadPDFNow(fileName);
+        }
+    } catch (error) {
+        console.log('Cancelado pelo usuário:', error);
+    }
+}
+
+function openWhatsAppForMobile(whatsappURL) {
+    showMobileSuccessMessage('📱 Abrindo WhatsApp... Não esqueça de anexar o PDF!');
+    setTimeout(() => {
+        window.open(whatsappURL, '_blank');
+    }, 1000);
+}
+
+// MANTER FUNÇÕES ANTIGAS PARA COMPATIBILIDADE (Desktop)
 async function chooseDownloadLocation(fileName, whatsappURL, isMobile) {
     try {
         const pdfDoc = window.currentPDFDoc;
