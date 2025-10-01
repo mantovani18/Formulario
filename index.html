@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pastifício Selmi - Formulário</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Biblioteca para gerar PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -101,6 +99,7 @@
                         <option value="">Selecione...</option>
                         <option value="solteiro">Solteiro(a)</option>
                         <option value="casado">Casado(a)</option>
+                        <option value="uniao_estavel">União Estável</option>
                         <option value="divorciado">Divorciado(a)</option>
                         <option value="viuvo">Viúvo(a)</option>
                     </select>
@@ -286,59 +285,7 @@
             </div>
         </form>
 
-        <!-- Seção de opções após envio (inicialmente oculta) -->
-        <div id="downloadOptionsSection" class="download-options-section" style="display: none;">
-            <div class="download-options-content">
-                <h3 class="success-title">✅ Currículo Gerado com Sucesso!</h3>
-                <p class="success-subtitle">Escolha como prosseguir:</p>
-                
-                <!-- Opções Mobile -->
-                <div id="mobileOptions" class="mobile-options" style="display: none;">
-                    <div class="option-card download-option">
-                        <div class="option-icon">📄</div>
-                        <h4>Baixar PDF do Currículo</h4>
-                        <p>Salva o PDF no seu celular<br><strong>Depois você envia pelo WhatsApp</strong></p>
-                        <button id="downloadPDFBtn" class="option-btn download-btn">
-                            📄 Baixar PDF
-                        </button>
-                    </div>
-                    
-                    <div class="option-card whatsapp-option">
-                        <div class="option-icon">📱</div>
-                        <h4>Abrir WhatsApp para Enviar</h4>
-                        <p>Abre o WhatsApp com a mensagem pronta<br><strong>Você anexa o PDF manualmente</strong></p>
-                        <button id="openWhatsAppBtn" class="option-btn whatsapp-btn">
-                            📱 Abrir WhatsApp
-                        </button>
-                    </div>
-                </div>
 
-                <!-- Opções Desktop -->
-                <div id="desktopOptions" class="desktop-options" style="display: none;">
-                    <div class="option-card download-option">
-                        <div class="option-icon">💾</div>
-                        <h4>Baixar PDF</h4>
-                        <p>Salva o PDF na pasta Downloads</p>
-                        <button id="downloadPDFDesktopBtn" class="option-btn download-btn">
-                            💾 Baixar PDF
-                        </button>
-                    </div>
-                    
-                    <div class="option-card whatsapp-option">
-                        <div class="option-icon">🌐</div>
-                        <h4>Abrir WhatsApp Web</h4>
-                        <p>Abre o WhatsApp Web com mensagem pronta</p>
-                        <button id="openWhatsAppWebBtn" class="option-btn whatsapp-btn">
-                            🌐 Abrir WhatsApp Web
-                        </button>
-                    </div>
-                </div>
-
-                <button onclick="hideDownloadOptions()" class="back-btn">
-                    ← Voltar ao Formulário
-                </button>
-            </div>
-        </div>
     </div>
 
     <script src="script.js"></script>
