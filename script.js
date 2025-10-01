@@ -716,12 +716,11 @@ function sendToWhatsAppDirectly(formData) {
         // Detectar dispositivo
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Redirecionar diretamente para WhatsApp
-        if (isMobile) {
-            window.location.href = whatsappURL;
-        } else {
-            window.open(whatsappURL, '_blank');
-        }
+        console.log('Dispositivo detectado:', isMobile ? 'Mobile' : 'Desktop');
+        
+        // Redirecionar diretamente para WhatsApp - MESMO COMPORTAMENTO PARA TODOS
+        console.log('Abrindo WhatsApp...');
+        window.open(whatsappURL, '_blank');
         
         // Mostrar mensagem de sucesso
         showSuccessMessage();
