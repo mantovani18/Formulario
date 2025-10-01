@@ -1368,3 +1368,155 @@ button:focus {
     font-family: 'Courier New', monospace;
     font-size: 0.9em;
 }
+
+/* Seção de opções pós-envio */
+.download-options-section {
+    margin-top: 30px;
+    padding: 30px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 15px;
+    border: 2px solid #28a745;
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.15);
+}
+
+.download-options-content {
+    text-align: center;
+}
+
+.success-title {
+    color: #28a745;
+    font-size: 1.8em;
+    margin: 0 0 10px 0;
+    font-weight: bold;
+}
+
+.success-subtitle {
+    color: #6c757d;
+    font-size: 1.1em;
+    margin: 0 0 30px 0;
+}
+
+.mobile-options, .desktop-options {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.option-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    min-width: 250px;
+    max-width: 300px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.option-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.download-option {
+    border: 2px solid #ff6b35;
+}
+
+.whatsapp-option {
+    border: 2px solid #25d366;
+}
+
+.option-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.option-card h4 {
+    color: #333;
+    font-size: 1.2em;
+    margin: 0 0 10px 0;
+    font-weight: bold;
+}
+
+.option-card p {
+    color: #666;
+    font-size: 0.95em;
+    margin: 0 0 20px 0;
+    line-height: 1.4;
+}
+
+.option-btn {
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.download-btn {
+    background: linear-gradient(135deg, #ff6b35, #e64a19);
+    color: white;
+}
+
+.download-btn:hover {
+    background: linear-gradient(135deg, #e64a19, #d84315);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.whatsapp-btn {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+}
+
+.whatsapp-btn:hover {
+    background: linear-gradient(135deg, #128c7e, #0d7377);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+}
+
+.back-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .mobile-options, .desktop-options {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .option-card {
+        min-width: 100%;
+        max-width: 100%;
+    }
+    
+    .download-options-section {
+        margin: 20px 0;
+        padding: 20px;
+    }
+    
+    .success-title {
+        font-size: 1.5em;
+    }
+    
+    .success-subtitle {
+        font-size: 1em;
+    }
+}
