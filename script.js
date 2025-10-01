@@ -254,6 +254,73 @@ function collectFormData() {
     return data;
 }
 
+// Função para criar mensagem formatada do WhatsApp
+function createFormattedMessage(formData) {
+    // Função para converter valores dos campos para texto legível
+    const formatEstadoCivil = (valor) => {
+        const estados = {
+            'solteiro': 'Solteiro(a)',
+            'casado': 'Casado(a)',
+            'uniao_estavel': 'União Estável',
+            'divorciado': 'Divorciado(a)',
+            'viuvo': 'Viúvo(a)'
+        };
+        return estados[valor] || valor || 'Não informado';
+    };
+    
+    const message = `🍝 *PASTIFÍCIO SELMI - CURRÍCULO*
+
+👋 Olá! Me chamo *${formData.nome}* e gostaria de me candidatar para uma vaga no Pastifício Selmi.
+
+📋 *DADOS PESSOAIS*
+• Nome: ${formData.nome}
+• Data de Nascimento: ${formData.data_nascimento || 'Não informado'}
+• CPF: ${formData.cpf || 'Não informado'}
+• RG: ${formData.rg || 'Não informado'}
+• Estado Civil: ${formatEstadoCivil(formData.estado_civil)}
+
+📍 *ENDEREÇO*
+• CEP: ${formData.cep || 'Não informado'}
+• Rua: ${formData.rua || 'Não informado'}
+• Número: ${formData.numero || 'Não informado'}
+• Complemento: ${formData.complemento || 'Não informado'}
+• Bairro: ${formData.bairro || 'Não informado'}
+• Cidade: ${formData.cidade || 'Não informado'}
+• Estado: ${formData.estado || 'Não informado'}
+
+📞 *CONTATO*
+• Telefone: ${formData.telefone || 'Não informado'}
+• WhatsApp: ${formData.whatsapp || 'Não informado'}
+• E-mail: ${formData.email || 'Não informado'}
+
+💼 *VAGA*
+${formData.vaga_especifica === 'sim' ? `• Vaga específica: ${formData.qual_vaga}` : '• Interesse geral em trabalhar na empresa'}
+
+🎓 *ESCOLARIDADE*
+• Nível: ${formData.escolaridade || 'Não informado'}
+${formData.curso ? `• Curso: ${formData.curso}` : ''}
+${formData.instituicao ? `• Instituição: ${formData.instituicao}` : ''}
+${formData.ano_conclusao ? `• Ano de conclusão: ${formData.ano_conclusao}` : ''}
+
+💪 *EXPERIÊNCIA PROFISSIONAL*
+${formData.experiencia || 'Não informado'}
+
+🚗 *OUTRAS INFORMAÇÕES*
+${formData.veiculo_proprio === 'sim' ? '• ✅ Possui veículo próprio' : '• ❌ Não possui veículo próprio'}
+${formData.cnh === 'sim' ? '• ✅ Possui CNH' : '• ❌ Não possui CNH'}
+
+📝 *OBSERVAÇÕES ADICIONAIS*
+${formData.observacoes || 'Nenhuma observação adicional'}
+
+---
+📅 *Enviado em:* ${new Date().toLocaleString('pt-BR')}
+🤖 *Via:* Sistema de Currículo Online
+
+Aguardo um retorno! Obrigado(a)! 😊`;
+
+    return message;
+}
+
 // Função para enviar o formulário
 function handleFormSubmit(event) {
     event.preventDefault();
@@ -287,13 +354,61 @@ function handleFormSubmit(event) {
     // Mostrar loading
     showLoadingState(true);
     
-    // Gerar PDF e enviar para WhatsApp
+    // Enviar diretamente para WhatsApp com mensagem formatada
     setTimeout(() => {
-        generatePDFAndSendWhatsApp(formData);
+        sendToWhatsAppDirectly(formData);
         showLoadingState(false);
     }, 1000);
     
     return false;
+}
+
+// Função para mostrar mensagem de sucesso
+function showSuccessMessage() {
+    // Ocultar formulário
+    const form = document.getElementById('curriculumForm');
+    if (form) {
+        form.style.display = 'none';
+    }
+    
+    // Criar mensagem de sucesso
+    const successDiv = document.createElement('div');
+    successDiv.style.cssText = `
+        text-align: center;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #e8f5e8, #c8e6c8);
+        border: 2px solid #25d366;
+        border-radius: 15px;
+        margin: 20px 0;
+        box-shadow: 0 4px 15px rgba(37, 211, 102, 0.2);
+    `;
+    
+    successDiv.innerHTML = `
+        <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+        <h2 style="color: #128c7e; margin: 0 0 15px 0;">Currículo Enviado!</h2>
+        <p style="color: #1a5f1a; font-size: 18px; margin: 0 0 20px 0;">
+            Você foi redirecionado para o WhatsApp com suas informações.
+        </p>
+        <p style="color: #666; font-size: 14px; margin: 0 0 30px 0;">
+            Se o WhatsApp não abriu automaticamente, você pode tentar novamente ou entrar em contato conosco diretamente.
+        </p>
+        <button onclick="location.reload()" 
+                style="background: #25d366; color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 16px; cursor: pointer; margin-right: 10px;">
+            📝 Enviar Outro Currículo
+        </button>
+        <button onclick="window.open('https://wa.me/5519971238643', '_blank')" 
+                style="background: #128c7e; color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 16px; cursor: pointer;">
+            📱 Abrir WhatsApp Novamente
+        </button>
+    `;
+    
+    // Adicionar depois do header
+    const container = document.querySelector('.container');
+    const header = document.querySelector('.header');
+    container.insertBefore(successDiv, header.nextSibling);
+    
+    // Scroll para o topo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Função para mostrar estado de carregamento
@@ -580,8 +695,45 @@ function removeExtraItems(type) {
     updateRemoveButtons(type);
 }
 
-// Função para gerar PDF e enviar para WhatsApp
-function generatePDFAndSendWhatsApp(formData) {
+// Função para enviar diretamente para WhatsApp (sem PDF)
+function sendToWhatsAppDirectly(formData) {
+    try {
+        console.log('Preparando mensagem para WhatsApp...');
+        
+        // Criar mensagem formatada com todos os dados
+        const whatsappMessage = createFormattedMessage(formData);
+        
+        // Número do WhatsApp
+        const phoneNumber = '5519971238643';
+        
+        // Criar URL do WhatsApp
+        const encodedMessage = encodeURIComponent(whatsappMessage);
+        const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+        
+        console.log('Mensagem criada:', whatsappMessage);
+        console.log('URL WhatsApp:', whatsappURL);
+        
+        // Detectar dispositivo
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Redirecionar diretamente para WhatsApp
+        if (isMobile) {
+            window.location.href = whatsappURL;
+        } else {
+            window.open(whatsappURL, '_blank');
+        }
+        
+        // Mostrar mensagem de sucesso
+        showSuccessMessage();
+        
+    } catch (error) {
+        console.error('Erro ao enviar para WhatsApp:', error);
+        alert('Erro ao preparar mensagem. Tente novamente.');
+    }
+}
+
+// Função para gerar PDF e enviar para WhatsApp (ANTIGA - REMOVIDA)
+function generatePDFAndSendWhatsApp_OLD(formData) {
     try {
         // Criar novo documento PDF
         const { jsPDF } = window.jspdf;
