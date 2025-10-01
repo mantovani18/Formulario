@@ -1404,25 +1404,24 @@ function showDownloadOptionsBeforePDF(fileName, whatsappURL, isMobile, pdfDoc) {
                     </div>
                 </div>
                 
-                <!-- Opção 2: Baixar e ver instruções -->
-                <div style="background: #fff3e0; border: 2px solid #ff9800; border-radius: 8px; padding: 15px; margin: 10px 0;">
+                <!-- Opção 2: Abrir WhatsApp -->
+                <div style="background: #e8f5e8; border: 2px solid #25d366; border-radius: 8px; padding: 15px; margin: 10px 0;">
                     <div style="text-align: center;">
-                        <h4 style="margin: 0 0 10px 0; color: #ef6c00;">
-                            📥 Baixar PDF + Ver Instruções
+                        <div style="font-size: 48px; margin-bottom: 10px;">📱</div>
+                        <h4 style="margin: 0 0 10px 0; color: #128c7e; font-size: 18px;">
+                            Abrir WhatsApp para Enviar
                         </h4>
-                        <p style="margin: 0 0 15px 0; font-size: 14px; color: #e65100;">
-                            Salva o PDF na pasta Downloads e mostra como enviar
+                        <p style="margin: 0 0 15px 0; font-size: 14px; color: #1a5f1a;">
+                            Abre o WhatsApp com a mensagem pronta<br><strong>Você anexa o PDF manualmente</strong>
                         </p>
-                        <button onclick="downloadToDownloadsFolderMobile('${fileName}', '${whatsappURL}')" 
-                                style="background: #ff9800; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; margin: 5px;">
-                            📥 Baixar + Instruções
+                        <button onclick="openWhatsAppMobile('${fileName}', '${whatsappURL}')" 
+                                style="background: #25d366; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 16px; cursor: pointer; margin: 5px;">
+                            � Abrir WhatsApp
                         </button>
                     </div>
                 </div>
                 
-                <!-- Opção 3: Escolher onde salvar -->
-                <div style="background: #f3e5f5; border: 2px solid #9c27b0; border-radius: 8px; padding: 15px; margin: 10px 0;">
-                    <div style="text-align: center;">
+
                         <h4 style="margin: 0 0 10px 0; color: #7b1fa2;">
                             � Escolher Onde Salvar PDF
                         </h4>
