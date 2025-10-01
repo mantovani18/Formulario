@@ -1253,3 +1253,118 @@ body {
         font-size: 0.8rem;
     }
 }
+
+/* Estilos para as opções de download ANTES do PDF */
+.download-options {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.download-options .instruction-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 20px;
+    border-radius: 15px 15px 0 0;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.download-options .instruction-content {
+    background: white;
+    padding: 25px;
+    border-radius: 0 0 15px 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    max-width: 700px;
+    margin: 0 auto;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Botões das opções de download */
+.download-options button {
+    transition: all 0.3s ease;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    border: none;
+    cursor: pointer;
+}
+
+.download-options button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.download-options button:active {
+    transform: translateY(0px);
+}
+
+/* Responsividade para opções de download */
+@media (max-width: 768px) {
+    .download-options {
+        padding: 10px;
+    }
+    
+    .download-options .instruction-content {
+        padding: 15px;
+        margin: 0 10px;
+        max-height: 90vh;
+    }
+    
+    .download-options button {
+        width: 100%;
+        margin: 8px 0 !important;
+        padding: 15px !important;
+        font-size: 14px !important;
+    }
+    
+    .download-options h4 {
+        font-size: 16px !important;
+    }
+    
+    .download-options p {
+        font-size: 13px !important;
+    }
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Estilos para instruções pós-WhatsApp */
+.whatsapp-instructions.post-whatsapp {
+    background: rgba(37, 211, 102, 0.95);
+    color: white;
+}
+
+.whatsapp-instructions.post-whatsapp .instruction-header {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Melhorias gerais de acessibilidade */
+button:focus {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+.download-options code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
