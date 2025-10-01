@@ -1092,32 +1092,32 @@ function showFallbackNotification() {
 
 // Função para abrir WhatsApp Web
 function openWhatsAppWeb(whatsappURL) {
-    // Modificar URL para WhatsApp Web com formato correto
-    const phoneNumber = '5519971238643';
-    const message = whatsappURL.split('text=')[1]; // Extrair mensagem da URL
-    const webURL = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
+    console.log('Abrindo WhatsApp Web:', whatsappURL);
     
-    // Debug para WhatsApp Web
-    console.log('WhatsApp Web - Número:', phoneNumber);
-    console.log('WhatsApp Web - URL:', webURL);
+    // Para WhatsApp Web, podemos usar a URL direta ou converter para formato web
+    let webURL = whatsappURL;
     
-    // Alterar texto do botão para mostrar progresso
-    const btn = document.getElementById('openWhatsAppWebBtn');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '🌐 Abrindo...';
-    btn.disabled = true;
+    // Se for uma URL wa.me, converter para web.whatsapp.com
+    if (whatsappURL.includes('wa.me/')) {
+        const phoneNumber = '5519971238643';
+        const message = whatsappURL.split('text=')[1]; // Extrair mensagem da URL
+        webURL = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
+    }
+    
+    console.log('WhatsApp Web - URL Final:', webURL);
     
     // Abrir WhatsApp Web
-    setTimeout(() => {
-        window.open(webURL, '_blank');
-        
-        // Restaurar botão
+    window.open(webURL, '_blank');
+    
+    // Feedback visual
+    const btn = document.getElementById('openWhatsAppWebBtn');
+    if (btn) {
+        const originalText = btn.innerHTML;
         btn.innerHTML = '✅ WhatsApp Web Aberto!';
         setTimeout(() => {
             btn.innerHTML = originalText;
-            btn.disabled = false;
         }, 3000);
-    }, 1000);
+    }
 }
 
 // Salvar progresso a cada mudança
@@ -1422,9 +1422,7 @@ function showDownloadOptionsBeforePDF(fileName, whatsappURL, isMobile, pdfDoc) {
                 </div>
                 
 
-                        <h4 style="margin: 0 0 10px 0; color: #7b1fa2;">
-                            � Escolher Onde Salvar PDF
-                        </h4>
+
                         <p style="margin: 0 0 15px 0; font-size: 14px; color: #8e24aa;">
                             Você escolhe a pasta + instruções de envio
                         </p>
@@ -1539,23 +1537,35 @@ function downloadPDFMobile(fileName) {
 
 // Função 2: Abrir WhatsApp no mobile
 function openWhatsAppMobile(fileName, whatsappURL) {
-    // Alterar texto do botão para mostrar progresso
-    const btn = document.getElementById('openWhatsAppBtn');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '📱 Abrindo...';
-    btn.disabled = true;
+    console.log('Abrindo WhatsApp Mobile:', whatsappURL);
     
-    // Abrir WhatsApp
-    setTimeout(() => {
+    // Verificar se é mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        // Para mobile: tentar primeiro o app nativo, depois o web
+        try {
+            // Tentar abrir o app nativo do WhatsApp
+            window.location.href = whatsappURL;
+        } catch (error) {
+            console.log('Erro ao abrir app nativo, tentando WhatsApp Web:', error);
+            // Se falhar, abrir WhatsApp Web
+            window.open(whatsappURL, '_blank');
+        }
+    } else {
+        // Para desktop: abrir em nova aba
         window.open(whatsappURL, '_blank');
-        
-        // Restaurar botão
+    }
+    
+    // Feedback visual
+    const btn = document.getElementById('openWhatsAppBtn');
+    if (btn) {
+        const originalText = btn.innerHTML;
         btn.innerHTML = '✅ WhatsApp Aberto!';
         setTimeout(() => {
             btn.innerHTML = originalText;
-            btn.disabled = false;
         }, 3000);
-    }, 1000);
+    }
 }
 
 // Função para mostrar mensagem após abrir WhatsApp
