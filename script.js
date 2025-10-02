@@ -341,30 +341,98 @@ function createFormattedMessage(formData) {
         
         console.log('Nome validado:', nome);
         
-        // Criar informações adicionais sobre CNH e veículo
-        let infoAdicional = '';
+        // Criar mensagem completa com todas as informações formatadas
+        let message = `👋 *Olá! Candidatura para Pastifício Selmi*\n\n`;
         
-        if (formData.possui_cnh === 'sim' && formData.categoria_cnh) {
-            infoAdicional += `\n🚗 CNH: ${formData.categoria_cnh}`;
-        } else if (formData.possui_cnh === 'nao') {
-            infoAdicional += `\n🚗 CNH: Não possuo`;
+        // DADOS PESSOAIS
+        message += `👤 *DADOS PESSOAIS*\n`;
+        message += `• Nome: ${formData.nome_completo || 'Não informado'}\n`;
+        if (formData.email) message += `• Email: ${formData.email}\n`;
+        if (formData.telefone) message += `• Telefone: ${formData.telefone}\n`;
+        if (formData.endereco) message += `• Endereço: ${formData.endereco}\n`;
+        if (formData.cpf) message += `• CPF: ${formData.cpf}\n`;
+        if (formData.data_nascimento) message += `• Data de Nascimento: ${formData.data_nascimento}\n`;
+        if (formData.estado_civil) message += `• Estado Civil: ${formData.estado_civil}\n`;
+        message += `\n`;
+        
+        // VAGA DE INTERESSE
+        if (formData.vaga_especifica === 'sim' && formData.qual_vaga) {
+            message += `🎯 *VAGA DE INTERESSE*\n`;
+            message += `• ${formData.qual_vaga}\n\n`;
         }
         
-        if (formData.veiculo_proprio === 'sim' && formData.tipo_veiculo) {
-            infoAdicional += `\n🚙 Veículo próprio: ${formData.tipo_veiculo}`;
-        } else if (formData.veiculo_proprio === 'nao') {
-            infoAdicional += `\n🚙 Veículo próprio: Não possuo`;
+        // ESCOLARIDADE
+        if (formData.escolaridade) {
+            message += `🎓 *ESCOLARIDADE*\n`;
+            message += `• ${formData.escolaridade}\n\n`;
         }
         
-        // Usar o mesmo padrão do PC - mensagem simples e direta com emojis
-        const message = `👋 Olá! Me chamo ${nome} e gostaria de me candidatar para uma vaga no Pastifício Selmi.
-
-📄 Segue meu currículo em anexo com minhas qualificações e experiências.${infoAdicional}
-
-🤝 Fico à disposição para uma entrevista.
-
-✉️ Atenciosamente,
-${nome}`;
+        // EXPERIÊNCIAS PROFISSIONAIS
+        if (formData.experiencias && formData.experiencias.length > 0) {
+            message += `� *EXPERIÊNCIAS PROFISSIONAIS*\n`;
+            formData.experiencias.forEach((exp, index) => {
+                if (exp.empresa || exp.funcoes) {
+                    message += `${index + 1}. ${exp.empresa || 'Empresa não informada'}\n`;
+                    if (exp.entrada || exp.saida) {
+                        message += `   📅 Período: ${exp.entrada || '...'} até ${exp.saida || 'atual'}\n`;
+                    }
+                    if (exp.funcoes) {
+                        message += `   📝 Funções: ${exp.funcoes}\n`;
+                    }
+                    message += `\n`;
+                }
+            });
+        }
+        
+        // CURSOS E QUALIFICAÇÕES
+        if (formData.cursos && formData.cursos.length > 0) {
+            message += `📚 *CURSOS E QUALIFICAÇÕES*\n`;
+            formData.cursos.forEach((curso, index) => {
+                if (curso.nome || curso.instituicao) {
+                    message += `${index + 1}. ${curso.nome || 'Curso não informado'}\n`;
+                    if (curso.instituicao) message += `   🏫 Instituição: ${curso.instituicao}\n`;
+                    if (curso.anoCarga) message += `   � Ano/Carga: ${curso.anoCarga}\n`;
+                    message += `\n`;
+                }
+            });
+        }
+        
+        // DISPONIBILIDADE
+        if (formData.disponibilidade && formData.disponibilidade.length > 0) {
+            message += `⏰ *DISPONIBILIDADE*\n`;
+            message += `• ${formData.disponibilidade.join(', ')}\n\n`;
+        }
+        
+        // CNH E VEÍCULO
+        message += `🚗 *TRANSPORTE*\n`;
+        if (formData.possui_cnh === 'sim') {
+            message += `• CNH: ${formData.categoria_cnh || 'Sim'}\n`;
+        } else {
+            message += `• CNH: Não possuo\n`;
+        }
+        
+        if (formData.veiculo_proprio === 'sim') {
+            message += `• Veículo próprio: ${formData.tipo_veiculo || 'Sim'}\n`;
+        } else {
+            message += `• Veículo próprio: Não possuo\n`;
+        }
+        message += `\n`;
+        
+        // PARENTE NA EMPRESA
+        if (formData.parente_empresa === 'sim' && formData.nome_parente) {
+            message += `👨‍👩‍👧‍� *PARENTE NA EMPRESA*\n`;
+            message += `• ${formData.nome_parente}\n\n`;
+        }
+        
+        // OUTRAS INFORMAÇÕES
+        if (formData.outras_informacoes && formData.outras_informacoes.trim()) {
+            message += `ℹ️ *OUTRAS INFORMAÇÕES*\n`;
+            message += `${formData.outras_informacoes}\n\n`;
+        }
+        
+        // FINALIZAÇÃO
+        message += `🤝 Fico à disposição para uma entrevista e esclarecimentos adicionais.\n\n`;
+        message += `✉️ Atenciosamente,\n${nome}`;
 
         console.log('Mensagem formatada criada com sucesso');
         return message;
@@ -2536,4 +2604,3 @@ function testWhatsAppWeb() {
     
     console.log('Teste WhatsApp Web - URL:', testURL);
 }
-
