@@ -342,27 +342,30 @@ function createFormattedMessage(formData) {
         console.log('Nome validado:', nome);
         
         // Criar mensagem completa com todas as informações formatadas
-        let message = `👋 *Olá! Candidatura para Pastifício Selmi*\n\n`;
+        let message = `👋 *Olá! Sou ${nome} e gostaria de me candidatar para uma vaga no Pastifício Selmi*\n\n`;
         
         // DADOS PESSOAIS
         message += `👤 *DADOS PESSOAIS*\n`;
-        message += `• Nome: ${formData.nome_completo || 'Não informado'}\n`;
-        if (formData.email) message += `• Email: ${formData.email}\n`;
-        if (formData.telefone) message += `• Telefone: ${formData.telefone}\n`;
-        if (formData.endereco) message += `• Endereço: ${formData.endereco}\n`;
-        if (formData.cpf) message += `• CPF: ${formData.cpf}\n`;
-        if (formData.data_nascimento) message += `• Data de Nascimento: ${formData.data_nascimento}\n`;
-        if (formData.estado_civil) message += `• Estado Civil: ${formData.estado_civil}\n`;
+        message += `• Nome Completo: ${formData.nome_completo || 'Não informado'}\n`;
+        if (formData.email && formData.email.trim()) message += `• Email: ${formData.email}\n`;
+        if (formData.telefone && formData.telefone.trim()) message += `• Telefone: ${formData.telefone}\n`;
+        if (formData.endereco && formData.endereco.trim()) message += `• Endereço: ${formData.endereco}\n`;
+        if (formData.cpf && formData.cpf.trim()) message += `• CPF: ${formData.cpf}\n`;
+        if (formData.data_nascimento && formData.data_nascimento.trim()) message += `• Data de Nascimento: ${formData.data_nascimento}\n`;
+        if (formData.estado_civil && formData.estado_civil.trim()) message += `• Estado Civil: ${formData.estado_civil}\n`;
         message += `\n`;
         
         // VAGA DE INTERESSE
-        if (formData.vaga_especifica === 'sim' && formData.qual_vaga) {
-            message += `🎯 *VAGA DE INTERESSE*\n`;
-            message += `• ${formData.qual_vaga}\n\n`;
+        message += `🎯 *VAGA DE INTERESSE*\n`;
+        if (formData.vaga_especifica === 'sim' && formData.qual_vaga && formData.qual_vaga.trim()) {
+            message += `• Vaga específica: ${formData.qual_vaga}\n`;
+        } else {
+            message += `• Qualquer vaga disponível\n`;
         }
+        message += `\n`;
         
         // ESCOLARIDADE
-        if (formData.escolaridade) {
+        if (formData.escolaridade && formData.escolaridade.trim()) {
             message += `🎓 *ESCOLARIDADE*\n`;
             message += `• ${formData.escolaridade}\n\n`;
         }
@@ -431,6 +434,7 @@ function createFormattedMessage(formData) {
         }
         
         // FINALIZAÇÃO
+        message += `📋 Todas as informações do meu currículo estão descritas acima.\n\n`;
         message += `🤝 Fico à disposição para uma entrevista e esclarecimentos adicionais.\n\n`;
         message += `✉️ Atenciosamente,\n${nome}`;
 
