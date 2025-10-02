@@ -234,11 +234,11 @@ function collectFormData() {
     
     // Coletar outros campos importantes diretamente
     const fieldsToCollect = [
-        'endereco', 'cpf', 'rg', 'cidade_rg', 'data_nascimento', 'pis', 
+        'email', 'telefone', 'endereco', 'cpf', 'rg', 'cidade_rg', 'data_nascimento', 'pis', 
         'cidade_nascimento', 'estado_civil', 'nome_pai', 'nome_mae', 
         'whatsapp', 'escolaridade', 'vaga_especifica', 'qual_vaga',
         'parente_empresa', 'nome_parente', 'possui_cnh', 'categoria_cnh',
-        'veiculo_proprio', 'tipo_veiculo'
+        'veiculo_proprio', 'tipo_veiculo', 'outras_informacoes'
     ];
     
     fieldsToCollect.forEach(fieldName => {
@@ -320,6 +320,9 @@ function createFormattedMessage(formData) {
         console.log('=== DEBUG createFormattedMessage ===');
         console.log('formData recebido:', formData);
         console.log('formData.nome_completo:', formData.nome_completo);
+        console.log('formData.email:', formData.email);
+        console.log('formData.telefone:', formData.telefone);
+        console.log('Dispositivo:', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop');
         
         // Pegar nome de forma mais robusta
         let nome = formData.nome_completo;
@@ -960,28 +963,46 @@ function sendToWhatsAppDirectly(formData) {
         
         console.log('Dispositivo detectado:', isMobile ? 'Mobile' : 'Desktop');
         console.log('User Agent:', navigator.userAgent);
+        console.log('Tamanho da tela:', window.innerWidth + 'x' + window.innerHeight);
         
         // Redirecionar para WhatsApp com tratamento específico por dispositivo
         console.log('Tentando abrir WhatsApp...');
+        console.log('URL do WhatsApp:', whatsappURL.substring(0, 100) + '...');
         
         if (isMobile) {
-            // Para mobile: tentar múltiplas abordagens
-            try {
-                console.log('Método 1: Tentando window.location.href');
-                window.location.href = whatsappURL;
-            } catch (error) {
-                console.log('Método 1 falhou, tentando window.open');
+            // Para mobile: usar abordagem mais direta e confiável
+            console.log('MOBILE: Usando window.location.href direto');
+            
+            // Adicionar delay pequeno para garantir que a interface responda
+            setTimeout(() => {
                 try {
-                    window.open(whatsappURL, '_self');
-                } catch (error2) {
-                    console.log('Método 2 falhou, tentando window.open _blank');
-                    window.open(whatsappURL, '_blank');
+                    // Método mais confiável para mobile
+                    window.location.href = whatsappURL;
+                    console.log('Mobile: Redirecionamento executado com sucesso');
+                } catch (error) {
+                    console.error('Erro no redirecionamento mobile:', error);
+                    // Fallback para mobile
+                    try {
+                        window.open(whatsappURL, '_self');
+                        console.log('Mobile: Fallback _self executado');
+                    } catch (error2) {
+                        console.error('Erro no fallback mobile:', error2);
+                        window.open(whatsappURL, '_blank');
+                        console.log('Mobile: Fallback _blank executado');
+                    }
                 }
-            }
+            }, 100);
         } else {
             // Para desktop: abrir em nova aba
             console.log('Desktop: usando window.open _blank');
-            window.open(whatsappURL, '_blank');
+            try {
+                window.open(whatsappURL, '_blank');
+                console.log('Desktop: Nova aba aberta com sucesso');
+            } catch (error) {
+                console.error('Erro ao abrir nova aba desktop:', error);
+                // Fallback para desktop
+                window.location.href = whatsappURL;
+            }
         }
         
         // Mostrar mensagem de sucesso após um pequeno delay
