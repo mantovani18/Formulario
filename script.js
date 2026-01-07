@@ -939,7 +939,7 @@ function sendToWhatsAppDirectly(formData) {
         }
         
         // Número do WhatsApp
-        const phoneNumber = '5519971238643';
+        const phoneNumber = '554331761482';
         
         // Criar URL do WhatsApp
         const encodedMessage = encodeURIComponent(whatsappMessage);
@@ -1203,7 +1203,7 @@ ${nomeCandidate}`;
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         // Criar link do WhatsApp
-        const phoneNumber = '5519971238643';
+        const phoneNumber = '554331761482';
         const encodedMessage = encodeURIComponent(whatsappMessage);
         const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
         
@@ -1584,7 +1584,7 @@ function openWhatsAppWeb(whatsappURL) {
     let webURL = whatsappURL;
     
     if (whatsappURL.includes('wa.me/')) {
-        const phoneNumber = '5519971238643';
+        const phoneNumber = '554331761482';
         const message = whatsappURL.split('text=')[1]; // Extrair mensagem da URL
         webURL = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
     }
@@ -2558,7 +2558,7 @@ function showDesktopPostWhatsAppInstructions(fileName) {
 function testWhatsAppLink() {
     console.log('=== INICIANDO TESTE DO WHATSAPP ===');
     
-    const phoneNumber = '5519971238643';
+    const phoneNumber = '554331761482';
     const testMessage = `Olá! Este é um teste do formulário do Pastifício Selmi.
     
 📋 TESTE DE FUNCIONAMENTO:
@@ -2612,7 +2612,7 @@ Se você recebeu esta mensagem, o sistema está funcionando perfeitamente! 🎉`
 }
 
 function testWhatsAppWeb() {
-    const phoneNumber = '5519971238643';
+    const phoneNumber = '554331761482';
     const testMessage = 'Teste de WhatsApp Web - Pastificio Selmi';
     const encodedMessage = encodeURIComponent(testMessage);
     const testURL = `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
@@ -2629,3 +2629,4 @@ function testWhatsAppWeb() {
     
     console.log('Teste WhatsApp Web - URL:', testURL);
 }
+
